@@ -29,20 +29,14 @@ IS                      (u|U|l|L)*
 "void"                  { return VOID; }
 "while"                 { return WHILE; }
 
-{L}({L}|{D})*           { /* A completer */ }
+{L}({L}|{D})*           {yylval.id = strdup(yytext); return IDENTIFICATEUR;}   
+0[xX]{H}+{IS}?          {yylval.id = strdup(yytext); return CONSTANTE;} 
+0{D}+{IS}?              {yylval.id = strdup(yytext); return CONSTANTE;} 
+{D}+{IS}?               {yylval.id = strdup(yytext); return CONSTANTE;}
+{D}+{E}{FS}?            {yylval.id = strdup(yytext);return CONSTANTE; }
 
-0[xX]{H}+{IS}?          { /* A completer */ }
-0{D}+{IS}?              { /* A completer */ }
-{D}+{IS}?               { /* A completer */ }
-L?'(\\.|[^\\'])+'       { /* A completer */ }
-
-{D}+{E}{FS}?            { /* A completer */ }
-
-L?\"(\\.|[^\\"])*\"     { /* A completer */ }
-
-
-"&="                    { return BAND;}
-"|="                    { return BOR;}
+"&"                     { return BAND;}
+"|"                     { return BOR;}
 ">>"                    { return RSHIFT;}
 "<<"                    { return LSHIFT;}
 "&&"                    { return LAND;}
@@ -60,6 +54,7 @@ L?\"(\\.|[^\\"])*\"     { /* A completer */ }
 "*"                     { return MUL;}
 "/"                     { return DIV;}
 
-[ \t\v\n\f]             { /* A completer */ }
+\n                        {  yylineno++;}
+[ \t\v\f]                {  }
 .                       { return yytext[0]; }
 %%
