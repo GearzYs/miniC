@@ -16,20 +16,18 @@ IS                      (u|U|l|L)*
 %}
 
 %%
-"break"                 { /* A completer */ }
-"case"                  { /* A completer */ }
-"const"                 { /* A completer */ }
-"default"               { /* A completer */ }
-"else"                  { /* A completer */ }
-"extern"                { /* A completer */ }
-"for"                   { /* A completer */ }
-"if"                    { /* A completer */ }
-"int"                   { /* A completer */ }
-"return"                { /* A completer */ }
-"sizeof"                { /* A completer */ }
-"switch"                { /* A completer */ }
-"void"                  { /* A completer */ }
-"while"                 { /* A completer */ }
+"break"                 { return BREAK; }
+"case"                  { return CASE; }
+"default"               { return DEFAULT; }
+"else"                  { return ELSE; }
+"extern"                { return EXTERN; }
+"for"                   { return FOR; }
+"if"                    { return IF; }
+"int"                   { return INT; }
+"return"                { return RETURN; }
+"switch"                { return SWITCH; }
+"void"                  { return VOID; }
+"while"                 { return WHILE; }
 
 {L}({L}|{D})*           { /* A completer */ }
 
@@ -42,27 +40,26 @@ L?'(\\.|[^\\'])+'       { /* A completer */ }
 
 L?\"(\\.|[^\\"])*\"     { /* A completer */ }
 
-">>"                    { /* A completer */ }
-"<<"                    { /* A completer */ }
-"&&"                    { /* A completer */ }
-"||"                    { /* A completer */ }
-"<="                    { /* A completer */ }
-">="                    { /* A completer */ }
-"=="                    { /* A completer */ }
-"!="                    { /* A completer */ }
-"/*"                    { /* A completer */ }
-"*/"                    { /* A completer */ }
-'>'                     { /* A completer */ }
-'<'                     { /* A completer */ }
-'+'                     { /* A completer */ }
-'-'                     { /* A completer */ }
-'*'                     { /* A completer */ }
-'/'                     { /* A completer */ }
-'&'                     { /* A completer */ }
-'|'                     { /* A completer */ }
-'!'                     { /* A completer */ }
+
+"&="                    { return BAND;}
+"|="                    { return BOR;}
+">>"                    { return RSHIFT;}
+"<<"                    { return LSHIFT;}
+"&&"                    { return LAND;}
+"||"                    { return LOR;}
+"<="                    { return LEQ;}
+">="                    { return GEQ;}
+"=="                    { return EQ;}
+"!="                    { return NEQ;}
+">"                     { return GT;}
+"<"                     { return LT;}
+"!"                     { return NOT;} 
+
+"+"                     { return PLUS;}
+"-"                     { return MOINS;}
+"*"                     { return MUL;}
+"/"                     { return DIV;}
 
 [ \t\v\n\f]             { /* A completer */ }
 .                       { return yytext[0]; }
 %%
-
