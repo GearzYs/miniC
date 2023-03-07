@@ -1,3 +1,4 @@
+%option noyywrap
 D                       [0-9]
 L                       [a-zA-Z_]
 H                       [a-fA-F0-9]
@@ -8,11 +9,6 @@ IS                      (u|U|l|L)*
 %{
 #include <stdio.h>
 #include "y.tab.h"
-
-
-/* Ne g�re pas les commentaires. A rajouter */
-/* Supprimer les lignes dont vous n'avez pas besoin. */
-
 %}
 
 %%
@@ -29,11 +25,11 @@ IS                      (u|U|l|L)*
 "void"                  { return VOID; }
 "while"                 { return WHILE; }
 
-{L}({L}|{D})*           {yylval.id = strdup(yytext); return IDENTIFICATEUR;}   
-0[xX]{H}+{IS}?          {yylval.id = strdup(yytext); return CONSTANTE;} 
-0{D}+{IS}?              {yylval.id = strdup(yytext); return CONSTANTE;} 
-{D}+{IS}?               {yylval.id = strdup(yytext); return CONSTANTE;}
-{D}+{E}{FS}?            {yylval.id = strdup(yytext);return CONSTANTE; }
+{L}({L}|{D})*           {yylval.val = strdup(yytext); return IDENTIFICATEUR;}   
+0[xX]{H}+{IS}?          {yylval.val = strdup(yytext); return CONSTANTE;} 
+0{D}+{IS}?              {yylval.val = strdup(yytext); return CONSTANTE;} 
+{D}+{IS}?               {yylval.val = strdup(yytext); return CONSTANTE;}
+{D}+{E}{FS}?            {yylval.val = strdup(yytext);return CONSTANTE; }
 
 "&"                     { return BAND;}
 "|"                     { return BOR;}
@@ -53,6 +49,17 @@ IS                      (u|U|l|L)*
 "-"                     { return MOINS;}
 "*"                     { return MUL;}
 "/"                     { return DIV;}
+
+"{" { return yytext;}
+"}" { return yytext;}    
+"[" { return yytext;}
+"]" { return yytext;}
+"(" { return yytext;}
+")" { return yytext;}
+";" { return yytext;}
+"," { return yytext;}
+"=" { return yytext;}
+":" { return yytext;}
 
 \n                        {  yylineno++;}
 [ \t\v\f]                {  }

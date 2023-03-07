@@ -1,6 +1,17 @@
 %{
+#include <stdio.h> 
+#include <stdlib.h>
+extern int yylineno;
+void yyerror (char *s);
+void table_reset();
 %}
-%token IDENTIFICATEUR CONSTANTE VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
+%union {
+	char* val;
+	char *string;
+	int integer;
+}
+%token <val> IDENTIFICATEUR CONSTANTE
+%token VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
 %token BREAK RETURN PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT 
 %token GEQ LEQ EQ NEQ NOT EXTERN
 %left PLUS MOINS
@@ -15,8 +26,7 @@
 %start programme
 %%
 programme	:	
-		liste_declarations liste_fonctions
-;
+		liste_declarations liste_fonctions;
 liste_declarations	:	
 		liste_declarations declaration 
 	|	
@@ -33,26 +43,26 @@ liste_declarateurs	:
 	|	declarateur
 ;
 declarateur	:	
-		IDENTIFICATEUR
-	|	declarateur '[' CONSTANTE ']'
+		IDENTIFICATEUR {printf("declaration de %s", $1);}
+	|	declarateur '[' CONSTANTE ']' {printf("declaration de %s", $3);}
 ;
 fonction	:	
-		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}'
-	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';'
+		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {printf("fonction");}
+	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {printf("extern");}
 ;
 type	:	
-		VOID
-	|	INT
+		VOID {printf("type : void");}
+	|	INT {printf("type : int");}
 ;
 liste_parms	:	
-		liste_parms ',' parm
+		liste_parms ',' parm {printf("liste_parms");}
 	|	
 ;
 parm	:	
-		INT IDENTIFICATEUR
+		INT IDENTIFICATEUR {printf("parametre : int %s", $2);}
 ;
 liste_instructions :	
-		liste_instructions instruction
+		liste_instructions instruction {printf("liste_instructions");}
 	|
 ;
 instruction	:	
@@ -64,72 +74,84 @@ instruction	:
 	|	appel
 ;
 iteration	:	
-		FOR '(' affectation ';' condition ';' affectation ')' instruction
-	|	WHILE '(' condition ')' instruction
+		FOR '(' affectation ';' condition ';' affectation ')' instruction {printf("for");}
+	|	WHILE '(' condition ')' instruction {printf("while");}
 ;
 selection	:	
-		IF '(' condition ')' instruction %prec THEN
-	|	IF '(' condition ')' instruction ELSE instruction
-	|	SWITCH '(' expression ')' instruction
-	|	CASE CONSTANTE ':' instruction
-	|	DEFAULT ':' instruction
+		IF '(' condition ')' instruction %prec THEN {printf("if");}
+	|	IF '(' condition ')' instruction ELSE instruction %prec ELSE {printf("if else");}
+	|	SWITCH '(' expression ')' instruction {printf("switch");}
+	|	CASE CONSTANTE ':' instruction {printf("case");}
+	|	DEFAULT ':' instruction {printf("default");}
 ;
 saut	:	
-		BREAK ';'
-	|	RETURN ';'
-	|	RETURN expression ';'
+		BREAK ';' {printf("break");}
+	|	RETURN ';' {printf("return");}
+	|	RETURN expression ';' {printf("return expression");}
+
 ;
 affectation	:	
-		variable '=' expression
+		variable '=' expression {printf("affectation");}
 ;
 bloc	:	
-		'{' liste_declarations liste_instructions '}'
+		'{' liste_declarations liste_instructions '}' {printf("bloc");}
 ;
 appel	:	
-		IDENTIFICATEUR '(' liste_expressions ')' ';'
+		IDENTIFICATEUR '(' liste_expressions ')' ';' {printf("appel de %s", $1);}
 ;
 variable	:	
-		IDENTIFICATEUR
-	|	variable '[' expression ']'
+		IDENTIFICATEUR {printf("variable : %s", $1);}
+	|	variable '[' expression ']' {printf("variable");}
 ;
 expression	:	
 		'(' expression ')'
-	|	expression binary_op expression %prec OP
-	|	MOINS expression
-	|	CONSTANTE
-	|	variable
-	|	IDENTIFICATEUR '(' liste_expressions ')'
+	|	expression binary_op expression %prec OP {printf("OP");}
+	|	MOINS expression {printf("MOINS");}
+	|	CONSTANTE {printf("expression : %d", $1);}
+	|	variable {printf("expression : variable");}
+	|	IDENTIFICATEUR '(' liste_expressions ')' {printf("expression : %s", $1);}
 ;
 liste_expressions	:	
-		liste_expressions ',' expression
+		liste_expressions ',' expression {printf("liste_expressions");}
 	|
 ;
 condition	:	
-		NOT '(' condition ')'
-	|	condition binary_rel condition %prec REL
-	|	'(' condition ')'
-	|	expression binary_comp expression
+		NOT '(' condition ')' {printf("condition : NOT");}
+	|	condition binary_rel condition %prec REL {printf("condition : REL");}
+	|	'(' condition ')' {printf("condition");}
+	|	expression binary_comp expression {printf("res comp");}
 ;
 binary_op	:	
-		PLUS
-	|       MOINS
-	|	MUL
-	|	DIV
-	|       LSHIFT
-	|       RSHIFT
-	|	BAND
-	|	BOR
+		PLUS {printf("binary_op : PLUS");}
+	|       MOINS {(printf("binary_op : MOINS"));}
+	|	MUL {printf("binary_op : MUL");}
+	|	DIV {printf("binary_op : DIV");}
+	|       LSHIFT {printf("binary_op : LSHIFT");}
+	|       RSHIFT {printf("binary_op : RSHIFT");}
+	|	BAND {printf("binary_op : BAND");}
+	|	BOR {printf("binary_op : BOR");}
 ;
 binary_rel	:	
-		LAND
-	|	LOR
+		LAND {printf("binary_rel : LAND");}
+	|	LOR {printf("binary_rel : LOR");}
 ;
 binary_comp	:	
-		LT
-	|	GT
-	|	GEQ
-	|	LEQ
-	|	EQ
-	|	NEQ
+		LT {printf("binary_comp : LT");}
+	|	GT {printf("binary_comp : GT");}
+	|	GEQ {printf("binary_comp : GEQ");}
+	|	LEQ {printf("binary_comp : LEQ");}
+	|	EQ {printf("binary_comp : EQ");}
+	|	NEQ {printf("binary_comp : NEQ");}
 ;
 %%
+void yyerror(char *s){
+     fprintf(stderr, " line %d: %s\n", yylineno, s);
+     exit(1);
+}
+
+int yywrap() {
+    return 1;
+} 
+int main(void) {
+    while(yyparse());
+}
