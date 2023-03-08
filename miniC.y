@@ -14,8 +14,10 @@ void table_reset();
 %token VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
 %token BREAK RETURN PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT 
 %token GEQ LEQ EQ NEQ NOT EXTERN
-%left PLUS MOINS
+
 %left MUL DIV
+%left PLUS MOINS
+
 %left LSHIFT RSHIFT
 %left BOR BAND
 %left LAND LOR
@@ -23,10 +25,16 @@ void table_reset();
 %nonassoc ELSE
 %left OP
 %left REL
+
 %start programme
+
+%type <string> binary_comp binary_op binary_rel condition declarateur declaration
+%type <val> type expression
+
 %%
 programme	:	
-		liste_declarations liste_fonctions;
+		liste_declarations liste_fonctions
+
 liste_declarations	:	
 		liste_declarations declaration 
 	|	
@@ -104,7 +112,7 @@ variable	:
 	|	variable '[' expression ']' {printf("variable");}
 ;
 expression	:	
-		'(' expression ')'
+		'(' expression ')' {$$ = $2;}
 	|	expression binary_op expression %prec OP {printf("OP");}
 	|	MOINS expression {printf("MOINS");}
 	|	CONSTANTE {printf("expression : %d", $1);}
@@ -116,34 +124,35 @@ liste_expressions	:
 	|
 ;
 condition	:	
-		NOT '(' condition ')' {printf("condition : NOT");}
+		NOT '(' condition ')' {$$ = '!'+$3;}
 	|	condition binary_rel condition %prec REL {printf("condition : REL");}
 	|	'(' condition ')' {printf("condition");}
 	|	expression binary_comp expression {printf("res comp");}
 ;
 binary_op	:	
-		PLUS {printf("binary_op : PLUS");}
-	|       MOINS {(printf("binary_op : MOINS"));}
-	|	MUL {printf("binary_op : MUL");}
-	|	DIV {printf("binary_op : DIV");}
-	|       LSHIFT {printf("binary_op : LSHIFT");}
-	|       RSHIFT {printf("binary_op : RSHIFT");}
-	|	BAND {printf("binary_op : BAND");}
-	|	BOR {printf("binary_op : BOR");}
+		PLUS {$$ = '+';}
+	|   MOINS {$$ = '-';}
+	|	MUL {$$ = '*';}
+	|	DIV {$$ = '/';}
+	|   LSHIFT {$$ = "<<";}
+	|   RSHIFT {$$ = ">>";}
+	|	BAND {$$ = '&';}
+	|	BOR {$$ = '|';}
 ;
 binary_rel	:	
-		LAND {printf("binary_rel : LAND");}
-	|	LOR {printf("binary_rel : LOR");}
+		LAND {$$ = "&&";}
+	|	LOR {$$ = "||";}
 ;
 binary_comp	:	
-		LT {printf("binary_comp : LT");}
-	|	GT {printf("binary_comp : GT");}
-	|	GEQ {printf("binary_comp : GEQ");}
-	|	LEQ {printf("binary_comp : LEQ");}
-	|	EQ {printf("binary_comp : EQ");}
-	|	NEQ {printf("binary_comp : NEQ");}
+		LT {$$ = '<';}
+	|	GT {$$ = '>';}
+	|	GEQ {$$ = ">=";}
+	|	LEQ {$$ = "<=";}
+	|	EQ {$$ = "==";}
+	|	NEQ {$$ = "!=";}
 ;
 %%
+
 void yyerror(char *s){
      fprintf(stderr, " line %d: %s\n", yylineno, s);
      exit(1);

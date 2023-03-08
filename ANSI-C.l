@@ -29,7 +29,7 @@ IS                      (u|U|l|L)*
 0[xX]{H}+{IS}?          {yylval.val = strdup(yytext); return CONSTANTE;} 
 0{D}+{IS}?              {yylval.val = strdup(yytext); return CONSTANTE;} 
 {D}+{IS}?               {yylval.val = strdup(yytext); return CONSTANTE;}
-{D}+{E}{FS}?            {yylval.val = strdup(yytext);return CONSTANTE; }
+{D}+{E}{FS}?            {yylval.val = strdup(yytext); return CONSTANTE; }
 
 "&"                     { return BAND;}
 "|"                     { return BOR;}
@@ -50,16 +50,17 @@ IS                      (u|U|l|L)*
 "*"                     { return MUL;}
 "/"                     { return DIV;}
 
-"{" { return yytext;}
-"}" { return yytext;}    
-"[" { return yytext;}
-"]" { return yytext;}
-"(" { return yytext;}
-")" { return yytext;}
-";" { return yytext;}
-"," { return yytext;}
-"=" { return yytext;}
-":" { return yytext;}
+"{"|"}"|"("|")"|"["|"]" { printf("%c",yytext[0]); }
+";"|":"|","|"="         { printf("%c",yytext[0]); }
+
+(\/\/.*)|(\/\*)(.|\r|\n)*?(\*\/)  {int counter = 0;
+                                    for (int i=0; i<strlen(yytext); i++){
+                                        if (yytext[i] == '\n'){
+                                        counter += 1;
+                                        }
+                                    }
+                                    yylineno+=counter;
+                                    }
 
 \n                        {  yylineno++;}
 [ \t\v\f]                {  }
