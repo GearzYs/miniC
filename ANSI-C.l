@@ -12,45 +12,45 @@ IS                      (u|U|l|L)*
 %}
 
 %%
-"break"                 { return BREAK; }
-"case"                  { return CASE; }
-"default"               { return DEFAULT; }
-"else"                  { return ELSE; }
-"extern"                { return EXTERN; }
-"for"                   { return FOR; }
-"if"                    { return IF; }
-"int"                   { return INT; }
-"return"                { return RETURN; }
-"switch"                { return SWITCH; }
-"void"                  { return VOID; }
-"while"                 { return WHILE; }
+"break"                 { printf("break"); return BREAK; }
+"case"                  { printf("case"); return CASE; }
+"default"               { printf("default"); return DEFAULT; }
+"else"                  { printf("else"); return ELSE; }
+"extern"                { printf("extern"); return EXTERN; }
+"for"                   { printf("for"); return FOR; }
+"if"                    { printf("if"); return IF; }
+"int"                   { printf("int"); return INT; }
+"return"                { printf("return"); return RETURN; }
+"switch"                { printf("switch"); return SWITCH; }
+"void"                  { printf("void"); return VOID; }
+"while"                 { printf("while"); return WHILE; }
 
-{L}({L}|{D})*           {yylval.val = strdup(yytext); return IDENTIFICATEUR;}   
-0[xX]{H}+{IS}?          {yylval.val = strdup(yytext); return CONSTANTE;} 
-0{D}+{IS}?              {yylval.val = strdup(yytext); return CONSTANTE;} 
-{D}+{IS}?               {yylval.val = strdup(yytext); return CONSTANTE;}
-{D}+{E}{FS}?            {yylval.val = strdup(yytext); return CONSTANTE; }
+{L}({L}|{D})*           {printf("ID %s",yytext); return IDENTIFICATEUR;}
+0[xX]{H}+{IS}?          {printf("CONSTANTE %s",yytext); return CONSTANTE;}
+0{D}+{IS}?              {printf("CONSTANTE %s",yytext); return CONSTANTE;}
+{D}+{IS}?               {printf("CONSTANTE %s",yytext); return CONSTANTE;}
+{D}+{E}{FS}?            {printf("CONSTANTE %s",yytext); return CONSTANTE;}
 
-"&"                     { return BAND;}
-"|"                     { return BOR;}
-">>"                    { return RSHIFT;}
-"<<"                    { return LSHIFT;}
-"&&"                    { return LAND;}
-"||"                    { return LOR;}
-"<="                    { return LEQ;}
-">="                    { return GEQ;}
-"=="                    { return EQ;}
-"!="                    { return NEQ;}
-">"                     { return GT;}
-"<"                     { return LT;}
-"!"                     { return NOT;} 
+"&"                     { printf("&"); return BAND;}
+"|"                     { printf("|"); return BOR;}
+">>"                    { printf(">>"); return RSHIFT;}
+"<<"                    { printf("<<"); return LSHIFT;}
+"&&"                    { printf("&&"); return LAND;}
+"||"                    { printf("||"); return LOR;}
+"<="                    { printf("<="); return LEQ;}
+">="                    { printf(">="); return GEQ;}
+"=="                    { printf("=="); return EQ;}
+"!="                    { printf("!="); return NEQ;}
+">"                     { printf(">"); return GT;}
+"<"                     { printf("<"); return LT;}
+"!"                     { printf("!"); return NOT;}
 
-"+"                     { return PLUS;}
-"-"                     { return MOINS;}
-"*"                     { return MUL;}
-"/"                     { return DIV;}
+"+"                     { printf("+"); return PLUS;}
+"-"                     { printf("-"); return MOINS;}
+"*"                     { printf("*"); return MUL;}
+"/"                     { printf("/"); return DIV;}
 
-"{"|"}"|"("|")"|"["|"]" { printf("%c",yytext[0]); }
+"{"|"}"|"("|");"|"["|"]" { printf("%c",yytext[0]); }
 ";"|":"|","|"="         { printf("%c",yytext[0]); }
 
 (\/\/.*)|(\/\*)(.|\r|\n)*?(\*\/)  {int counter = 0;

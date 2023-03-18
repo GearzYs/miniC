@@ -28,27 +28,28 @@ void table_reset();
 
 %start programme
 
-%type <string> binary_comp binary_op binary_rel condition declarateur declaration
+%type <string> binary_comp binary_op binary_rel condition declarateur declaration fonction instruction iteration liste_declarations liste_declarateurs liste_expressions liste_fonctions liste_instructions liste_parms saut selection variable parm
 %type <val> type expression
+%type <integer> affectation appel bloc
 
 %%
 programme	:	
-		liste_declarations liste_fonctions
+		liste_declarations liste_fonctions {printf("%s%s",$1,$2);}
 
 liste_declarations	:	
-		liste_declarations declaration 
-	|	
+		liste_declarations declaration {$$ = strcat($1,$2);}
+	|
 ;
 liste_fonctions	:	
-		liste_fonctions fonction
-|               fonction
+		liste_fonctions fonction {$$ = strcat($1,$2);}
+	|   fonction {$$ = $1;}
 ;
 declaration	:	
-		type liste_declarateurs ';'
+		type liste_declarateurs ';' {$$ = strcat($1,strcat(";",$2));}
 ;
 liste_declarateurs	:	
-		liste_declarateurs ',' declarateur
-	|	declarateur
+		liste_declarateurs ',' declarateur {$$ = strcat($1,strcat(",",$3));}
+	|	declarateur {$$ = $1;}
 ;
 declarateur	:	
 		IDENTIFICATEUR {printf("declaration de %s", $1);}
@@ -59,75 +60,75 @@ fonction	:
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {printf("extern");}
 ;
 type	:	
-		VOID {printf("type : void");}
-	|	INT {printf("type : int");}
+		VOID {$$ = "VOID";}
+	|	INT {$$ = "INT";}
 ;
 liste_parms	:	
-		liste_parms ',' parm {printf("liste_parms");}
-	|	
+		liste_parms ',' parm {$$ = strcat($1,strcat(",",$3));}
+	| 
 ;
 parm	:	
-		INT IDENTIFICATEUR {printf("parametre : int %s", $2);}
+		INT IDENTIFICATEUR {$$ = "INT"+$2;}
 ;
 liste_instructions :	
-		liste_instructions instruction {printf("liste_instructions");}
-	|
+		liste_instructions instruction {$$ = strcat($1,$2);}
+		|
 ;
 instruction	:	
-		iteration
-	|	selection
-	|	saut
-	|	affectation ';'
-	|	bloc
-	|	appel
+		iteration {$$ = $1;}
+	|	selection {$$ = $1;}
+	|	saut {$$ = $1;}
+	|	affectation ';' {$$ = $1;}
+	|	bloc {$$ = $1;}
+	|	appel {$$ = $1;}
 ;
 iteration	:	
-		FOR '(' affectation ';' condition ';' affectation ')' instruction {printf("for");}
-	|	WHILE '(' condition ')' instruction {printf("while");}
+		FOR '(' affectation ';' condition ';' affectation ')' instruction {$$ = "FOR";}
+	|	WHILE '(' condition ')' instruction {$$ = "WHILE";}
 ;
 selection	:	
-		IF '(' condition ')' instruction %prec THEN {printf("if");}
-	|	IF '(' condition ')' instruction ELSE instruction %prec ELSE {printf("if else");}
-	|	SWITCH '(' expression ')' instruction {printf("switch");}
-	|	CASE CONSTANTE ':' instruction {printf("case");}
-	|	DEFAULT ':' instruction {printf("default");}
+		IF '(' condition ')' instruction %prec THEN {$$ = "IF";}
+	|	IF '(' condition ')' instruction ELSE instruction %prec ELSE {$$ = "IF";}
+	|	SWITCH '(' expression ')' instruction {$$ = "SWITCH";}
+	|	CASE CONSTANTE ':' instruction {$$ = "CASE";}
+	|	DEFAULT ':' instruction {$$ = "DEFAULT";}
 ;
 saut	:	
-		BREAK ';' {printf("break");}
-	|	RETURN ';' {printf("return");}
-	|	RETURN expression ';' {printf("return expression");}
+		BREAK ';' {$$ = "BREAK";}
+	|	RETURN ';' {$$ = "RETURN";}
+	|	RETURN expression ';' {$$ = $2;}
 
 ;
 affectation	:	
-		variable '=' expression {printf("affectation");}
+		variable '=' expression {$$ = strcat($1,strcat("=",$3));}
 ;
 bloc	:	
-		'{' liste_declarations liste_instructions '}' {printf("bloc");}
+		'{' liste_declarations liste_instructions '}' {$$ = strcat("{",strcat($1,strcat($3,"}")));}
 ;
 appel	:	
-		IDENTIFICATEUR '(' liste_expressions ')' ';' {printf("appel de %s", $1);}
+		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$ = strcat($1,strcat($3,")"));}
 ;
 variable	:	
-		IDENTIFICATEUR {printf("variable : %s", $1);}
-	|	variable '[' expression ']' {printf("variable");}
+		IDENTIFICATEUR {$$ = $1;}
+	|	variable '[' expression ']' {$$ = strcat($1,$3);}
 ;
 expression	:	
 		'(' expression ')' {$$ = $2;}
-	|	expression binary_op expression %prec OP {printf("OP");}
-	|	MOINS expression {printf("MOINS");}
-	|	CONSTANTE {printf("expression : %d", $1);}
-	|	variable {printf("expression : variable");}
-	|	IDENTIFICATEUR '(' liste_expressions ')' {printf("expression : %s", $1);}
+	|	expression binary_op expression %prec OP {$$ = strcat($1,strcat($2,$3));}
+	|	MOINS expression {$$ = $2;}
+	|	CONSTANTE {$$ = $1;}
+	|	variable {$$ = $1;}
+	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = strcat($1,$3);}
 ;
 liste_expressions	:	
-		liste_expressions ',' expression {printf("liste_expressions");}
+		liste_expressions ',' expression {$$ = strcat($1,$3);}
 	|
 ;
 condition	:	
-		NOT '(' condition ')' {$$ = '!'+$3;}
-	|	condition binary_rel condition %prec REL {printf("condition : REL");}
-	|	'(' condition ')' {printf("condition");}
-	|	expression binary_comp expression {printf("res comp");}
+		NOT '(' condition ')' {printf("!%s",$3);$$ = $3;}
+	|	condition binary_rel condition %prec REL {$$ = strcat($1,strcat($2,$3));}
+	|	'(' condition ')' {$$ = $2;}
+	|	expression binary_comp expression {$$ = strcat($1,strcat($2,$3));}
 ;
 binary_op	:	
 		PLUS {$$ = '+';}
