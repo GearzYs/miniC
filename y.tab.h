@@ -1,50 +1,49 @@
 #ifndef _yy_defines_h_
 #define _yy_defines_h_
 
-#define IDENTIFICATEUR 257
-#define CONSTANTE 258
-#define VOID 259
-#define INT 260
-#define FOR 261
-#define WHILE 262
-#define IF 263
-#define ELSE 264
-#define SWITCH 265
-#define CASE 266
-#define DEFAULT 267
-#define BREAK 268
-#define RETURN 269
-#define PLUS 270
-#define MOINS 271
-#define MUL 272
-#define DIV 273
-#define LSHIFT 274
-#define RSHIFT 275
-#define BAND 276
-#define BOR 277
-#define LAND 278
-#define LOR 279
-#define LT 280
-#define GT 281
-#define GEQ 282
-#define LEQ 283
-#define EQ 284
-#define NEQ 285
-#define NOT 286
-#define EXTERN 287
-#define THEN 288
-#define OP 289
-#define REL 290
+#define VOID 257
+#define INT 258
+#define PLUS 259
+#define MOINS 260
+#define MUL 261
+#define DIV 262
+#define LSHIFT 263
+#define RSHIFT 264
+#define BAND 265
+#define BOR 266
+#define LAND 267
+#define LOR 268
+#define LT 269
+#define GT 270
+#define GEQ 271
+#define LEQ 272
+#define EQ 273
+#define NEQ 274
+#define THEN 275
+#define ELSE 276
+#define OP 277
+#define REL 278
+#define WHILE 279
+#define FOR 280
+#define IF 281
+#define NOT 282
+#define IDENTIFICATEUR 283
+#define CONSTANTE 284
+#define BREAK 285
+#define RETURN 286
+#define DEFAULT 287
+#define CASE 288
+#define SWITCH 289
+#define EXTERN 290
 #ifdef YYSTYPE
 #undef  YYSTYPE_IS_DECLARED
 #define YYSTYPE_IS_DECLARED 1
 #endif
 #ifndef YYSTYPE_IS_DECLARED
 #define YYSTYPE_IS_DECLARED 1
-typedef union YYSTYPE {
-	char* val;
-	char *string;
-	int integer;
+typedef union YYSTYPE{
+	int val;
+	char* id;
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
 extern YYSTYPE yylval;

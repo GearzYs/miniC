@@ -1,23 +1,23 @@
 %{
 #include <stdio.h> 
 #include <stdlib.h>
-extern int yylineno;
+
+extern int chars;
+
 void yyerror (char *s);
-void table_reset();
 %}
-%union {
-	char* val;
-	char *string;
-	int integer;
+
+%union{
+	int val;
+	char* id;
 }
-%token <val> IDENTIFICATEUR CONSTANTE
-%token VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
-%token BREAK RETURN PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT 
-%token GEQ LEQ EQ NEQ NOT EXTERN
+ 
 
-%left MUL DIV
+%token VOID INT 
+%token PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT 
+%token GEQ LEQ EQ NEQ
 %left PLUS MOINS
-
+%left MUL DIV
 %left LSHIFT RSHIFT
 %left BOR BAND
 %left LAND LOR
@@ -25,143 +25,152 @@ void table_reset();
 %nonassoc ELSE
 %left OP
 %left REL
-
 %start programme
 
-%type <string> binary_comp binary_op binary_rel condition declarateur declaration fonction instruction iteration liste_declarations liste_declarateurs liste_expressions liste_fonctions liste_instructions liste_parms saut selection variable parm
-%type <val> type expression
-%type <integer> affectation appel bloc
+%token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
+%type <id> binary_rel binary_comp binary_op type expression variable affectation condition parm appel bloc saut selection iteration liste_declarateurs declarateur instruction declaration liste_expressions liste_instructions liste_parms fonction liste_fonctions liste_declarations programme
 
 %%
 programme	:	
-		liste_declarations liste_fonctions {printf("%s%s",$1,$2);}
-
+		liste_declarations liste_fonctions  {}
+;
 liste_declarations	:	
-		liste_declarations declaration {$$ = strcat($1,$2);}
-	|
+		liste_declarations declaration  {$$=$2;}
+	|				{$$=" ";}
 ;
 liste_fonctions	:	
-		liste_fonctions fonction {$$ = strcat($1,$2);}
-	|   fonction {$$ = $1;}
+		liste_fonctions fonction      {$$=$1;} 
+|               fonction			{$$=$1;}
 ;
 declaration	:	
-		type liste_declarateurs ';' {$$ = strcat($1,strcat(";",$2));}
+		type liste_declarateurs ';' {$$ = $2;}
 ;
 liste_declarateurs	:	
-		liste_declarateurs ',' declarateur {$$ = strcat($1,strcat(",",$3));}
-	|	declarateur {$$ = $1;}
+		liste_declarateurs ',' declarateur {$$=$1;}
+	|	declarateur  {$$ = $1; }
 ;
 declarateur	:	
-		IDENTIFICATEUR {printf("declaration de %s", $1);}
-	|	declarateur '[' CONSTANTE ']' {printf("declaration de %s", $3);}
+		IDENTIFICATEUR   { $$ = $1;}
+	|	declarateur '[' CONSTANTE ']'  {$$="0";}  
 ;
 fonction	:	
-		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {printf("fonction");}
-	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {printf("extern");}
+		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {$$=$1;}
+	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {$$=EXTERN;}
 ;
 type	:	
-		VOID {$$ = "VOID";}
-	|	INT {$$ = "INT";}
+		VOID {$$ = "void";}
+	|	INT {$$ = "int";}
 ;
+
 liste_parms	:	
-		liste_parms ',' parm {$$ = strcat($1,strcat(",",$3));}
-	| 
+		liste_parms ',' parm {$$=$3;}
+	|	parm {$$=$1;}
+	|	{$$=" ";}
 ;
-parm	:	
-		INT IDENTIFICATEUR {$$ = "INT"+$2;}
+
+parm	:	 
+		INT IDENTIFICATEUR  {$$ = $2;}
 ;
+
 liste_instructions :	
-		liste_instructions instruction {$$ = strcat($1,$2);}
-		|
+		liste_instructions instruction {$$=$2;}
+	|				{$$=" ";}
 ;
 instruction	:	
-		iteration {$$ = $1;}
-	|	selection {$$ = $1;}
-	|	saut {$$ = $1;}
-	|	affectation ';' {$$ = $1;}
-	|	bloc {$$ = $1;}
-	|	appel {$$ = $1;}
+		iteration {$$=$1;}
+	|	selection {$$=$1;}
+	|	saut {$$=$1;}
+	|	affectation ';' {$$=$1;}
+	|	bloc {$$=$1;}
+	|	appel {$$=$1;}
 ;
 iteration	:	
-		FOR '(' affectation ';' condition ';' affectation ')' instruction {$$ = "FOR";}
-	|	WHILE '(' condition ')' instruction {$$ = "WHILE";}
+		FOR '(' affectation ';' condition ';' affectation ')' instruction 	{$$=FOR;}
+	|	WHILE '(' condition ')' instruction {$$= WHILE;}
+	|   error '\n' {yyerror("reenter last");
+                        yyerrok; };
 ;
 selection	:	
-		IF '(' condition ')' instruction %prec THEN {$$ = "IF";}
-	|	IF '(' condition ')' instruction ELSE instruction %prec ELSE {$$ = "IF";}
-	|	SWITCH '(' expression ')' instruction {$$ = "SWITCH";}
-	|	CASE CONSTANTE ':' instruction {$$ = "CASE";}
-	|	DEFAULT ':' instruction {$$ = "DEFAULT";}
+		IF '(' condition ')' instruction %prec THEN {$$=IF;}
+	|	IF '(' condition ')' instruction ELSE instruction {$$=ELSE;}
+	|	SWITCH '(' expression ')' instruction {$$=SWITCH;}
+	|	CASE CONSTANTE ':' instruction {$$=CASE;}
+	|	DEFAULT ':' instruction {$$=DEFAULT;}
 ;
 saut	:	
-		BREAK ';' {$$ = "BREAK";}
-	|	RETURN ';' {$$ = "RETURN";}
-	|	RETURN expression ';' {$$ = $2;}
-
+		BREAK ';' {$$=BREAK;}
+	|	RETURN ';' {$$=RETURN;}
+	|	RETURN expression ';' {$$=RETURN;}
 ;
-affectation	:	
-		variable '=' expression {$$ = strcat($1,strcat("=",$3));}
+affectation	:	 
+		variable '=' expression   {$$ = $3;}
 ;
 bloc	:	
-		'{' liste_declarations liste_instructions '}' {$$ = strcat("{",strcat($1,strcat($3,"}")));}
+		'{' liste_declarations liste_instructions '}' {$$="0";}
 ;
 appel	:	
-		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$ = strcat($1,strcat($3,")"));}
+		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$=$1;}
 ;
 variable	:	
-		IDENTIFICATEUR {$$ = $1;}
-	|	variable '[' expression ']' {$$ = strcat($1,$3);}
+		IDENTIFICATEUR  {$$ = $1;}
+	|	variable '[' expression ']' {$$ ="0";/* $$ = $1[$3] ;*/}
 ;
 expression	:	
-		'(' expression ')' {$$ = $2;}
-	|	expression binary_op expression %prec OP {$$ = strcat($1,strcat($2,$3));}
-	|	MOINS expression {$$ = $2;}
-	|	CONSTANTE {$$ = $1;}
-	|	variable {$$ = $1;}
-	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = strcat($1,$3);}
+		'(' expression ')'	{$$ = $2;}                      
+	|	expression binary_op expression %prec OP	{$$="0";}
+	|	MOINS expression	{$$ = $2;}                                   
+	|	CONSTANTE       {$$=$1;}                                                  							
+	|	variable	 {$$ = $1;}                                 
+	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = $1;}                                  
 ;
+
 liste_expressions	:	
-		liste_expressions ',' expression {$$ = strcat($1,$3);}
-	|
+		liste_expressions ',' expression {$$=$1;}
+	|	expression {$$=$1;}
+	|   {$$=" ";}
 ;
+
 condition	:	
-		NOT '(' condition ')' {printf("!%s",$3);$$ = $3;}
-	|	condition binary_rel condition %prec REL {$$ = strcat($1,strcat($2,$3));}
+		NOT '(' condition ')' {$$ = $3;}
+	|	condition binary_rel condition %prec REL {$$="0";}
 	|	'(' condition ')' {$$ = $2;}
-	|	expression binary_comp expression {$$ = strcat($1,strcat($2,$3));}
+	|	expression binary_comp expression {$$ = $1;}
 ;
 binary_op	:	
-		PLUS {$$ = '+';}
-	|   MOINS {$$ = '-';}
-	|	MUL {$$ = '*';}
-	|	DIV {$$ = '/';}
-	|   LSHIFT {$$ = "<<";}
-	|   RSHIFT {$$ = ">>";}
-	|	BAND {$$ = '&';}
-	|	BOR {$$ = '|';}
+		PLUS  {$$ = "+"; }
+	|   MOINS	{$$ = "-"; }
+	|	MUL	{$$ = "*"; }
+	|	DIV	{$$ = "/"; }
+	|   LSHIFT	{$$ = "<<"; }
+	|   RSHIFT	{$$ = ">>"; }
+	|	BAND	{$$ = "&="; }
+	|	BOR	{$$ = "|="; }
 ;
 binary_rel	:	
-		LAND {$$ = "&&";}
-	|	LOR {$$ = "||";}
+		LAND {$$ = "&&"; }
+	|	LOR	{$$ = "||"; }
 ;
 binary_comp	:	
-		LT {$$ = '<';}
-	|	GT {$$ = '>';}
-	|	GEQ {$$ = ">=";}
-	|	LEQ {$$ = "<=";}
-	|	EQ {$$ = "==";}
-	|	NEQ {$$ = "!=";}
+		LT	{$$ = "<"; }
+	|	GT	{$$ = ">"; }
+	|	GEQ	{$$ = ">="; }
+	|	LEQ	{$$ = "<="; }
+	|	EQ	{$$ = "="; }
+	|	NEQ	{$$ = "!="; }
 ;
+
 %%
 
+extern int yylineno;
 void yyerror(char *s){
-     fprintf(stderr, " line %d: %s\n", yylineno, s);
-     exit(1);
+	 fprintf(stderr, " line %d: %s\n", yylineno, s);
+	 exit(1);
 }
 
 int yywrap() {
-    return 1;
-} 
+	return 1;
+}
+
 int main(void) {
-    while(yyparse());
+	while(yyparse());
 }
