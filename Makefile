@@ -6,7 +6,7 @@ CC = gcc
 # Fichiers source
 LEX_FILE = ANSI-C.l
 YACC_FILE = miniC.y
-SRC_FILES = lex.yy.c y.tab.c main.c
+SRC_FILES = lex.yy.c y.tab.c translateDot.c
 NAME = compil
 CFLAG = -o
 LFLAG = -lfl
@@ -20,4 +20,4 @@ all:
 	./$(NAME) < Tests/add.c
 
 clean:
-    rm $(NAME)
+	rm $(NAME)
