@@ -6,7 +6,7 @@ CC = gcc
 # Fichiers source
 LEX_FILE = ANSI-C.l
 YACC_FILE = miniC.y
-SRC_FILES = lex.yy.c y.tab.c translateDot.c
+SRC_FILES = lex.yy.c y.tab.c parsingMini.c
 NAME = compil
 CFLAG = -o
 LFLAG = -lfl
@@ -14,10 +14,10 @@ LFLAG = -lfl
 
 # Règles de compilation
 all:
-	$(YAAC) -d miniC.y 
+	$(YACC) -d miniC.y 
 	$(LEX) ANSI-C.l
 	$(CC) $(CFLAG) $(NAME) $(SRC_FILES) $(LFLAG)
-	./$(NAME) < Tests/add.c
+	./$(NAME) < Tests/test.c
 
 clean:
 	rm $(NAME)

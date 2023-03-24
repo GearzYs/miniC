@@ -1,6 +1,7 @@
 %{
 #include <stdio.h> 
 #include <stdlib.h>
+#include "parsingMini.h"
 
 extern int chars;
 
@@ -10,6 +11,7 @@ void yyerror (char *s);
 %union{
 	int val;
 	char* id;
+	struct _arbre *arbre;
 }
  
 
@@ -25,10 +27,11 @@ void yyerror (char *s);
 %nonassoc ELSE
 %left OP
 %left REL
-%start programme
+%start condition
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
-%type <id> binary_rel binary_comp binary_op type expression variable affectation condition parm appel bloc saut selection iteration liste_declarateurs declarateur instruction declaration liste_expressions liste_instructions liste_parms fonction liste_fonctions liste_declarations programme
+%type <id> binary_rel binary_comp binary_op type expression variable affectation parm appel bloc saut selection iteration liste_declarateurs declarateur instruction declaration liste_expressions liste_instructions liste_parms fonction liste_fonctions liste_declarations programme
+%type <arbre> condition
 
 %%
 programme	:	
@@ -132,9 +135,15 @@ liste_expressions	:
 
 condition	:	
 		NOT '(' condition ')' {$$ = $3;}
-	|	condition binary_rel condition %prec REL {$$="0";}
+	|	condition binary_rel condition %prec REL {printf("test");
+	$$=createArbre(NULL, NULL);}
 	|	'(' condition ')' {$$ = $2;}
-	|	expression binary_comp expression {$$ = $1;}
+	|	expression binary_comp expression {
+		printf("coucou");
+		arbre fils[2] = {createArbre($1,NULL), createArbre($3,NULL)};
+		printf("%s %s", fils[0], fils[1]);
+		$$ = createArbre($2,fils);
+		affiche($$);}
 ;
 binary_op	:	
 		PLUS  {$$ = "+"; }
