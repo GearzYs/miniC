@@ -1,6 +1,7 @@
 %{
 #include <stdio.h> 
 #include <stdlib.h>
+#include "parsingMini.h"
 
 extern int chars;
 
@@ -10,6 +11,7 @@ void yyerror (char *s);
 %union{
 	int val;
 	char* id;
+	arbre *arbre;
 }
  
 
@@ -134,7 +136,11 @@ condition	:
 		NOT '(' condition ')' {$$ = $3;}
 	|	condition binary_rel condition %prec REL {$$="0";}
 	|	'(' condition ')' {$$ = $2;}
-	|	expression binary_comp expression {$$ = $1;}
+	|	expression binary_comp expression {$$ = $1;
+	arbre fils[2] = {createArbre($1,NULL), createArbre($3,NULL)};
+	arbre express = createArbre($2,fils);
+	afficherArbre(express);
+	}
 ;
 binary_op	:	
 		PLUS  {$$ = "+"; }

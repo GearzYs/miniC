@@ -1,9 +1,12 @@
-typedef struct _arbre {
+#ifndef _ARBRE_H
+#define _ARBRE_H
+
+typedef struct arbre {
   char* val;
-  struct _arbre *fils[1];
+  struct arbre *fils[2];
 } arbre;
 
-
-
 arbre *createArbre(char* val, arbre *fils[]);
-void affiche(arbre *a);
+void afficherArbre(arbre *a);
+
+#endif

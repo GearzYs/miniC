@@ -44,7 +44,7 @@
 typedef union YYSTYPE{
 	int val;
 	char* id;
-	struct _arbre *arbre;
+	arbre *arbre;
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
 extern YYSTYPE yylval;
