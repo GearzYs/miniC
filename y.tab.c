@@ -617,7 +617,7 @@ int yywrap() {
 int main(void) {
 	clearFile();
 	startFile();
-	freeArbre();
+	while(yyparse());
 	endFile();
 }
 #line 624 "y.tab.c"
@@ -1568,7 +1568,7 @@ case 55:
 	n->fils[0] = creerNoeud(yystack.l_mark[-2].id,0);
 	n->fils[1] = creerNoeud(yystack.l_mark[0].id,0);
 	afficherArbre(n);
-	arbreToDot(n);
+	generateDotFile(n);
 	}
 #line 1574 "y.tab.c"
 break;

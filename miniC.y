@@ -142,7 +142,7 @@ condition	:
 	n->fils[0] = creerNoeud($1,0);
 	n->fils[1] = creerNoeud($3,0);
 	afficherArbre(n);
-	arbreToDot(n);
+	generateDotFile(n);
 	}
 ;
 binary_op	:	
@@ -184,6 +184,6 @@ int yywrap() {
 int main(void) {
 	clearFile();
 	startFile();
-	freeArbre();
+	while(yyparse());
 	endFile();
 }

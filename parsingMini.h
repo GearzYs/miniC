@@ -15,10 +15,8 @@ void afficherArbre(noeud* n);
 
 #endif /* ARBRE_H */
 
-void arbreToDot(noeud* n);
-void nodeToDot(FILE *f, noeud* n);
-void linkNodeDot(FILE *f, noeud* n);
+void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp);
+void generateDotFile(noeud* n);
 void startFile();
 void endFile();
-void freeArbre();
 void clearFile();
