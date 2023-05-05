@@ -601,7 +601,7 @@ static YYINT  *yylexp = 0;
 
 static YYINT  *yylexemes = 0;
 #endif /* YYBTYACC */
-#line 172 "miniC.y"
+#line 174 "miniC.y"
 
 extern int yylineno;
 
@@ -1564,95 +1564,97 @@ break;
 case 55:
 #line 140 "miniC.y"
 	{yyval.id = yystack.l_mark[-2].id;
-	noeud *n = creerNoeud(yystack.l_mark[-1].id,2);
-	n->fils[0] = creerNoeud(yystack.l_mark[-2].id,0);
-	n->fils[1] = creerNoeud(yystack.l_mark[0].id,0);
+	noeud *n = creerNoeud("IF",1);
+	noeud *n1 = creerNoeud(yystack.l_mark[-1].id,2);
+	n1->fils[0] = creerNoeud(yystack.l_mark[-2].id,0);
+	n1->fils[1] = creerNoeud(yystack.l_mark[0].id,0);
+	n->fils[0] = n1;
 	afficherArbre(n);
 	generateDotFile(n);
 	}
-#line 1574 "y.tab.c"
+#line 1576 "y.tab.c"
 break;
 case 56:
-#line 149 "miniC.y"
+#line 151 "miniC.y"
 	{yyval.id = "+"; }
-#line 1579 "y.tab.c"
+#line 1581 "y.tab.c"
 break;
 case 57:
-#line 150 "miniC.y"
+#line 152 "miniC.y"
 	{yyval.id = "-"; }
-#line 1584 "y.tab.c"
+#line 1586 "y.tab.c"
 break;
 case 58:
-#line 151 "miniC.y"
+#line 153 "miniC.y"
 	{yyval.id = "*"; }
-#line 1589 "y.tab.c"
+#line 1591 "y.tab.c"
 break;
 case 59:
-#line 152 "miniC.y"
+#line 154 "miniC.y"
 	{yyval.id = "/"; }
-#line 1594 "y.tab.c"
+#line 1596 "y.tab.c"
 break;
 case 60:
-#line 153 "miniC.y"
+#line 155 "miniC.y"
 	{yyval.id = "<<"; }
-#line 1599 "y.tab.c"
+#line 1601 "y.tab.c"
 break;
 case 61:
-#line 154 "miniC.y"
+#line 156 "miniC.y"
 	{yyval.id = ">>"; }
-#line 1604 "y.tab.c"
+#line 1606 "y.tab.c"
 break;
 case 62:
-#line 155 "miniC.y"
+#line 157 "miniC.y"
 	{yyval.id = "&="; }
-#line 1609 "y.tab.c"
+#line 1611 "y.tab.c"
 break;
 case 63:
-#line 156 "miniC.y"
+#line 158 "miniC.y"
 	{yyval.id = "|="; }
-#line 1614 "y.tab.c"
+#line 1616 "y.tab.c"
 break;
 case 64:
-#line 159 "miniC.y"
+#line 161 "miniC.y"
 	{yyval.id = "&&"; }
-#line 1619 "y.tab.c"
+#line 1621 "y.tab.c"
 break;
 case 65:
-#line 160 "miniC.y"
+#line 162 "miniC.y"
 	{yyval.id = "||"; }
-#line 1624 "y.tab.c"
+#line 1626 "y.tab.c"
 break;
 case 66:
-#line 163 "miniC.y"
+#line 165 "miniC.y"
 	{yyval.id = "<"; }
-#line 1629 "y.tab.c"
+#line 1631 "y.tab.c"
 break;
 case 67:
-#line 164 "miniC.y"
+#line 166 "miniC.y"
 	{yyval.id = ">"; }
-#line 1634 "y.tab.c"
+#line 1636 "y.tab.c"
 break;
 case 68:
-#line 165 "miniC.y"
+#line 167 "miniC.y"
 	{yyval.id = ">="; }
-#line 1639 "y.tab.c"
+#line 1641 "y.tab.c"
 break;
 case 69:
-#line 166 "miniC.y"
+#line 168 "miniC.y"
 	{yyval.id = "<="; }
-#line 1644 "y.tab.c"
+#line 1646 "y.tab.c"
 break;
 case 70:
-#line 167 "miniC.y"
-	{yyval.id = "="; }
-#line 1649 "y.tab.c"
+#line 169 "miniC.y"
+	{yyval.id = "=="; }
+#line 1651 "y.tab.c"
 break;
 case 71:
-#line 168 "miniC.y"
+#line 170 "miniC.y"
 	{yyval.id = "!="; }
-#line 1654 "y.tab.c"
-break;
 #line 1656 "y.tab.c"
+break;
+#line 1658 "y.tab.c"
     default:
         break;
     }

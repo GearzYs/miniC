@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "parsingMini.h"
 
 int COMPTEUR = 0;
@@ -39,10 +40,31 @@ void afficherArbre(noeud* n) {
     printf(")\n");
 }
 
+void nodeType(FILE* f, noeud* n, int* COMPTEUR){
+  if(n->type == APPELFONCTION){
+    printf("APPELFONCTION\n");
+  }
+  else if(n->type == FONCTION){
+    printf("FONCTION\n");
+  }
+  else if(strcmp(n->val,"BREAK")==0){
+    fprintf(f, "node_%d [label=\"%s\"shape=box];\n", *COMPTEUR, "BREAK");
+  }
+  else if(strcmp(n->val,"IF")==0){
+    fprintf(f, "node_%d [label=\"%s\"shape=diamond];\n", *COMPTEUR, "IF");
+  }
+  else if(strcmp(n->val,"RETURN")==0){
+    fprintf(f, "node_%d [label=\"%s\"shape=trapezium color=blue];\n", *COMPTEUR, "RETURN");
+  }
+  else {
+    fprintf(f, "node_%d [label=\"%s\"];\n", *COMPTEUR, n->val);
+  }
+}
+
 void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp) {
     if (n == NULL) return;
 
-    fprintf(fp, "node_%d [label=\"%s\"];\n", *COMPTEUR, n->val);
+    nodeType(fp, n, COMPTEUR);
     int noeud_courant = *COMPTEUR;
     (*COMPTEUR)++;
     for (int i = 0; i < n->nb_fils; i++) {

@@ -138,9 +138,11 @@ condition	:
 	|	condition binary_rel condition %prec REL {$$="0";}
 	|	'(' condition ')' {$$ = $2;}
 	|	expression binary_comp expression {$$ = $1;
-	noeud *n = creerNoeud($2,2);
-	n->fils[0] = creerNoeud($1,0);
-	n->fils[1] = creerNoeud($3,0);
+	noeud *n = creerNoeud("IF",1);
+	noeud *n1 = creerNoeud($2,2);
+	n1->fils[0] = creerNoeud($1,0);
+	n1->fils[1] = creerNoeud($3,0);
+	n->fils[0] = n1;
 	afficherArbre(n);
 	generateDotFile(n);
 	}
@@ -164,7 +166,7 @@ binary_comp	:
 	|	GT	{$$ = ">"; }
 	|	GEQ	{$$ = ">="; }
 	|	LEQ	{$$ = "<="; }
-	|	EQ	{$$ = "="; }
+	|	EQ	{$$ = "=="; }
 	|	NEQ	{$$ = "!="; }
 ;
 
