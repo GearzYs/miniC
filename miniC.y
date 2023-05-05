@@ -11,7 +11,7 @@ void yyerror (char *s);
 %union{
 	int val;
 	char* id;
-	arbre *arbre;
+	noeud *noeud;
 }
  
 
@@ -33,6 +33,7 @@ void yyerror (char *s);
 %type <id> binary_rel binary_comp binary_op type expression variable affectation condition parm appel bloc saut selection iteration liste_declarateurs declarateur instruction declaration liste_expressions liste_instructions liste_parms fonction liste_fonctions liste_declarations programme
 
 %%
+
 programme	:	
 		liste_declarations liste_fonctions  {}
 ;
@@ -137,9 +138,11 @@ condition	:
 	|	condition binary_rel condition %prec REL {$$="0";}
 	|	'(' condition ')' {$$ = $2;}
 	|	expression binary_comp expression {$$ = $1;
-	arbre fils[2] = {createArbre($1,NULL), createArbre($3,NULL)};
-	arbre express = createArbre($2,fils);
-	afficherArbre(express);
+	noeud *n = creerNoeud($2,2);
+	n->fils[0] = creerNoeud($1,0);
+	n->fils[1] = creerNoeud($3,0);
+	afficherArbre(n);
+	arbreToDot(n);
 	}
 ;
 binary_op	:	
@@ -168,6 +171,7 @@ binary_comp	:
 %%
 
 extern int yylineno;
+
 void yyerror(char *s){
 	 fprintf(stderr, " line %d: %s\n", yylineno, s);
 	 exit(1);
@@ -178,5 +182,8 @@ int yywrap() {
 }
 
 int main(void) {
-	while(yyparse());
+	clearFile();
+	startFile();
+	freeArbre();
+	endFile();
 }

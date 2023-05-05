@@ -1,0 +1,20 @@
+digraph G {
+	node_0 [shape=ellipse label="A"];
+	node_1 [shape=ellipse label="B"];
+	node_2 [shape=ellipse label="E"];
+	node_3 [shape=ellipse label="F"];
+	node_4 [shape=ellipse label="C"];
+	node_5 [shape=ellipse label="G"];
+	node_6 [shape=ellipse label="H"];
+	node_7 [shape=ellipse label="D"];
+	node_0 -> node_0;
+	node_0 -> node_0;
+	node_1 -> node_1;
+	node_1 -> node_2;
+	node_1 -> node_3;
+	node_0 -> node_1;
+	node_4 -> node_4;
+	node_4 -> node_5;
+	node_4 -> node_6;
+	node_0 -> node_7;
+}

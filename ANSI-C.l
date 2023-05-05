@@ -4,47 +4,48 @@ L                       [a-zA-Z_]
 
 %{
 #include <stdio.h>
+#include "parsingMini.h"
 #include "y.tab.h"
 %}
 
 %%
-"break"                 { printf("BREAK "); return BREAK; }
-"case"                  { printf("CASE "); return CASE; }
-"default"               { printf("DEFAULT "); return DEFAULT; }
-"else"                  { printf("ELSE "); return ELSE; }
-"extern"                { printf("EXTERN "); return EXTERN; }
-"for"                   { printf("FOR "); return FOR; }
-"if"                    { printf("IF "); return IF; }
-"int"                   { printf("INT "); return INT; }
-"return"                { printf("RETURN "); return RETURN; }
-"switch"                { printf("SWITCH "); return SWITCH; }
-"void"                  { printf("VOID "); return VOID; }
-"while"                 { printf("WHILE "); return WHILE; }
+"break"                 { return BREAK; }
+"case"                  { return CASE; }
+"default"               { return DEFAULT; }
+"else"                  { return ELSE; }
+"extern"                { return EXTERN; }
+"for"                   { return FOR; }
+"if"                    { return IF; }
+"int"                   { return INT; }
+"return"                { return RETURN; }
+"switch"                { return SWITCH; }
+"void"                  { return VOID; }
+"while"                 { return WHILE; }
 
-{L}({L}|{D})*           {printf("ID %s",yytext); return IDENTIFICATEUR;}
-{D}+                    {printf("CONSTANTE %s",yytext); return CONSTANTE;}
+{L}({L}|{D})*           {yylval.id = strdup(yytext); return IDENTIFICATEUR;}
+{D}+                    {yylval.id = strdup(yytext); return CONSTANTE;}
 
-"&"                     { printf("& "); return BAND;}
-"|"                     { printf("| "); return BOR;}
-">>"                    { printf(">> "); return RSHIFT;}
-"<<"                    { printf("<< "); return LSHIFT;}
-"&&"                    { printf("&& "); return LAND;}
-"||"                    { printf("|| "); return LOR;}
-"<="                    { printf("<= "); return LEQ;}
-">="                    { printf(">= "); return GEQ;}
-"=="                    { printf("== "); return EQ;}
-"!="                    { printf("!= "); return NEQ;}
-">"                     { printf("> "); return GT;}
-"<"                     { printf("< "); return LT;}
-"!"                     { printf("! "); return NOT;}
+"&"                     {return BAND;}
+"|"                     {return BOR;}
+">>"                    {return RSHIFT;}
+"<<"                    {return LSHIFT;}
+"&&"                    {return LAND;}
+"||"                    {return LOR;}
+"<="                    {return LEQ;}
+">="                    {return GEQ;}
+"=="                    {return EQ;}
+"!="                    {return NEQ;}
+">"                     {return GT;}
+"<"                     {return LT;}
+"!"                     {return NOT;}
 
-"+"                     { printf("+ "); return PLUS;}
-"-"                     { printf("- "); return MOINS;}
-"*"                     { printf("* "); return MUL;}
-"/"                     { printf("/ "); return DIV;}
+"+"                     {return PLUS;}
+"-"                     {return MOINS;}
+"*"                     {return MUL;}
+"/"                     {return DIV;}
 
-"{"|"}"|"("|")"|"["|"]" { printf("%c",yytext[0]); return yytext[0]; }
-";"|":"|","|"="         { printf("%c",yytext[0]); return yytext[0]; } 
+"{"|"}"|"("|")"|"["|"]" {return yytext[0]; }
+";"|":"|","|"="         {return yytext[0]; } 
 
 (\/\/.*)|(\/\*)(.|\r|\n)*?(\*\/)  {int counter = 0;
                                     for (int i=0; i<strlen(yytext); i++){

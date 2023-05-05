@@ -38,7 +38,7 @@ void yyerror (char *s);
 typedef union YYSTYPE{
 	int val;
 	char* id;
-	arbre *arbre;
+	noeud *noeud;
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
 #line 45 "y.tab.c"
@@ -601,9 +601,10 @@ static YYINT  *yylexp = 0;
 
 static YYINT  *yylexemes = 0;
 #endif /* YYBTYACC */
-#line 169 "miniC.y"
+#line 172 "miniC.y"
 
 extern int yylineno;
+
 void yyerror(char *s){
 	 fprintf(stderr, " line %d: %s\n", yylineno, s);
 	 exit(1);
@@ -614,9 +615,12 @@ int yywrap() {
 }
 
 int main(void) {
-	while(yyparse());
+	clearFile();
+	startFile();
+	freeArbre();
+	endFile();
 }
-#line 620 "y.tab.c"
+#line 624 "y.tab.c"
 
 /* For use in generated program */
 #define yydepth (int)(yystack.s_mark - yystack.s_base)
@@ -1287,366 +1291,368 @@ yyreduce:
     switch (yyn)
     {
 case 1:
-#line 37 "miniC.y"
+#line 38 "miniC.y"
 	{}
-#line 1293 "y.tab.c"
+#line 1297 "y.tab.c"
 break;
 case 2:
-#line 40 "miniC.y"
+#line 41 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1298 "y.tab.c"
+#line 1302 "y.tab.c"
 break;
 case 3:
-#line 41 "miniC.y"
+#line 42 "miniC.y"
 	{yyval.id=" ";}
-#line 1303 "y.tab.c"
+#line 1307 "y.tab.c"
 break;
 case 4:
-#line 44 "miniC.y"
+#line 45 "miniC.y"
 	{yyval.id=yystack.l_mark[-1].id;}
-#line 1308 "y.tab.c"
+#line 1312 "y.tab.c"
 break;
 case 5:
-#line 45 "miniC.y"
+#line 46 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1313 "y.tab.c"
+#line 1317 "y.tab.c"
 break;
 case 6:
-#line 48 "miniC.y"
+#line 49 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1318 "y.tab.c"
+#line 1322 "y.tab.c"
 break;
 case 7:
-#line 51 "miniC.y"
+#line 52 "miniC.y"
 	{yyval.id=yystack.l_mark[-2].id;}
-#line 1323 "y.tab.c"
+#line 1327 "y.tab.c"
 break;
 case 8:
-#line 52 "miniC.y"
+#line 53 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id; }
-#line 1328 "y.tab.c"
+#line 1332 "y.tab.c"
 break;
 case 9:
-#line 55 "miniC.y"
+#line 56 "miniC.y"
 	{ yyval.id = yystack.l_mark[0].id;}
-#line 1333 "y.tab.c"
+#line 1337 "y.tab.c"
 break;
 case 10:
-#line 56 "miniC.y"
+#line 57 "miniC.y"
 	{yyval.id="0";}
-#line 1338 "y.tab.c"
+#line 1342 "y.tab.c"
 break;
 case 11:
-#line 59 "miniC.y"
+#line 60 "miniC.y"
 	{yyval.id=yystack.l_mark[-8].id;}
-#line 1343 "y.tab.c"
+#line 1347 "y.tab.c"
 break;
 case 12:
-#line 60 "miniC.y"
+#line 61 "miniC.y"
 	{yyval.id=EXTERN;}
-#line 1348 "y.tab.c"
+#line 1352 "y.tab.c"
 break;
 case 13:
-#line 63 "miniC.y"
+#line 64 "miniC.y"
 	{yyval.id = "void";}
-#line 1353 "y.tab.c"
+#line 1357 "y.tab.c"
 break;
 case 14:
-#line 64 "miniC.y"
+#line 65 "miniC.y"
 	{yyval.id = "int";}
-#line 1358 "y.tab.c"
+#line 1362 "y.tab.c"
 break;
 case 15:
-#line 68 "miniC.y"
-	{yyval.id=yystack.l_mark[0].id;}
-#line 1363 "y.tab.c"
-break;
-case 16:
 #line 69 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1368 "y.tab.c"
+#line 1367 "y.tab.c"
+break;
+case 16:
+#line 70 "miniC.y"
+	{yyval.id=yystack.l_mark[0].id;}
+#line 1372 "y.tab.c"
 break;
 case 17:
-#line 70 "miniC.y"
+#line 71 "miniC.y"
 	{yyval.id=" ";}
-#line 1373 "y.tab.c"
+#line 1377 "y.tab.c"
 break;
 case 18:
-#line 74 "miniC.y"
+#line 75 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1378 "y.tab.c"
+#line 1382 "y.tab.c"
 break;
 case 19:
-#line 78 "miniC.y"
+#line 79 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1383 "y.tab.c"
+#line 1387 "y.tab.c"
 break;
 case 20:
-#line 79 "miniC.y"
+#line 80 "miniC.y"
 	{yyval.id=" ";}
-#line 1388 "y.tab.c"
+#line 1392 "y.tab.c"
 break;
 case 21:
-#line 82 "miniC.y"
-	{yyval.id=yystack.l_mark[0].id;}
-#line 1393 "y.tab.c"
-break;
-case 22:
 #line 83 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1398 "y.tab.c"
+#line 1397 "y.tab.c"
 break;
-case 23:
+case 22:
 #line 84 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1403 "y.tab.c"
+#line 1402 "y.tab.c"
+break;
+case 23:
+#line 85 "miniC.y"
+	{yyval.id=yystack.l_mark[0].id;}
+#line 1407 "y.tab.c"
 break;
 case 24:
-#line 85 "miniC.y"
+#line 86 "miniC.y"
 	{yyval.id=yystack.l_mark[-1].id;}
-#line 1408 "y.tab.c"
+#line 1412 "y.tab.c"
 break;
 case 25:
-#line 86 "miniC.y"
-	{yyval.id=yystack.l_mark[0].id;}
-#line 1413 "y.tab.c"
-break;
-case 26:
 #line 87 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1418 "y.tab.c"
+#line 1417 "y.tab.c"
+break;
+case 26:
+#line 88 "miniC.y"
+	{yyval.id=yystack.l_mark[0].id;}
+#line 1422 "y.tab.c"
 break;
 case 27:
-#line 90 "miniC.y"
+#line 91 "miniC.y"
 	{yyval.id=FOR;}
-#line 1423 "y.tab.c"
+#line 1427 "y.tab.c"
 break;
 case 28:
-#line 91 "miniC.y"
+#line 92 "miniC.y"
 	{yyval.id= WHILE;}
-#line 1428 "y.tab.c"
+#line 1432 "y.tab.c"
 break;
 case 29:
-#line 92 "miniC.y"
+#line 93 "miniC.y"
 	{yyerror("reenter last");
                         yyerrok; }
-#line 1434 "y.tab.c"
+#line 1438 "y.tab.c"
 break;
 case 30:
-#line 96 "miniC.y"
+#line 97 "miniC.y"
 	{yyval.id=IF;}
-#line 1439 "y.tab.c"
+#line 1443 "y.tab.c"
 break;
 case 31:
-#line 97 "miniC.y"
+#line 98 "miniC.y"
 	{yyval.id=ELSE;}
-#line 1444 "y.tab.c"
+#line 1448 "y.tab.c"
 break;
 case 32:
-#line 98 "miniC.y"
+#line 99 "miniC.y"
 	{yyval.id=SWITCH;}
-#line 1449 "y.tab.c"
+#line 1453 "y.tab.c"
 break;
 case 33:
-#line 99 "miniC.y"
+#line 100 "miniC.y"
 	{yyval.id=CASE;}
-#line 1454 "y.tab.c"
+#line 1458 "y.tab.c"
 break;
 case 34:
-#line 100 "miniC.y"
+#line 101 "miniC.y"
 	{yyval.id=DEFAULT;}
-#line 1459 "y.tab.c"
+#line 1463 "y.tab.c"
 break;
 case 35:
-#line 103 "miniC.y"
+#line 104 "miniC.y"
 	{yyval.id=BREAK;}
-#line 1464 "y.tab.c"
+#line 1468 "y.tab.c"
 break;
 case 36:
-#line 104 "miniC.y"
-	{yyval.id=RETURN;}
-#line 1469 "y.tab.c"
-break;
-case 37:
 #line 105 "miniC.y"
 	{yyval.id=RETURN;}
-#line 1474 "y.tab.c"
+#line 1473 "y.tab.c"
+break;
+case 37:
+#line 106 "miniC.y"
+	{yyval.id=RETURN;}
+#line 1478 "y.tab.c"
 break;
 case 38:
-#line 108 "miniC.y"
+#line 109 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1479 "y.tab.c"
+#line 1483 "y.tab.c"
 break;
 case 39:
-#line 111 "miniC.y"
+#line 112 "miniC.y"
 	{yyval.id="0";}
-#line 1484 "y.tab.c"
+#line 1488 "y.tab.c"
 break;
 case 40:
-#line 114 "miniC.y"
+#line 115 "miniC.y"
 	{yyval.id=yystack.l_mark[-4].id;}
-#line 1489 "y.tab.c"
+#line 1493 "y.tab.c"
 break;
 case 41:
-#line 117 "miniC.y"
+#line 118 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1494 "y.tab.c"
+#line 1498 "y.tab.c"
 break;
 case 42:
-#line 118 "miniC.y"
+#line 119 "miniC.y"
 	{yyval.id ="0";/* $$ = $1[$3] ;*/}
-#line 1499 "y.tab.c"
+#line 1503 "y.tab.c"
 break;
 case 43:
-#line 121 "miniC.y"
+#line 122 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1504 "y.tab.c"
+#line 1508 "y.tab.c"
 break;
 case 44:
-#line 122 "miniC.y"
+#line 123 "miniC.y"
 	{yyval.id="0";}
-#line 1509 "y.tab.c"
+#line 1513 "y.tab.c"
 break;
 case 45:
-#line 123 "miniC.y"
+#line 124 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1514 "y.tab.c"
+#line 1518 "y.tab.c"
 break;
 case 46:
-#line 124 "miniC.y"
+#line 125 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1519 "y.tab.c"
+#line 1523 "y.tab.c"
 break;
 case 47:
-#line 125 "miniC.y"
+#line 126 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1524 "y.tab.c"
+#line 1528 "y.tab.c"
 break;
 case 48:
-#line 126 "miniC.y"
+#line 127 "miniC.y"
 	{yyval.id = yystack.l_mark[-3].id;}
-#line 1529 "y.tab.c"
+#line 1533 "y.tab.c"
 break;
 case 49:
-#line 130 "miniC.y"
+#line 131 "miniC.y"
 	{yyval.id=yystack.l_mark[-2].id;}
-#line 1534 "y.tab.c"
+#line 1538 "y.tab.c"
 break;
 case 50:
-#line 131 "miniC.y"
+#line 132 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1539 "y.tab.c"
+#line 1543 "y.tab.c"
 break;
 case 51:
-#line 132 "miniC.y"
+#line 133 "miniC.y"
 	{yyval.id=" ";}
-#line 1544 "y.tab.c"
+#line 1548 "y.tab.c"
 break;
 case 52:
-#line 136 "miniC.y"
+#line 137 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1549 "y.tab.c"
+#line 1553 "y.tab.c"
 break;
 case 53:
-#line 137 "miniC.y"
+#line 138 "miniC.y"
 	{yyval.id="0";}
-#line 1554 "y.tab.c"
+#line 1558 "y.tab.c"
 break;
 case 54:
-#line 138 "miniC.y"
+#line 139 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1559 "y.tab.c"
+#line 1563 "y.tab.c"
 break;
 case 55:
-#line 139 "miniC.y"
+#line 140 "miniC.y"
 	{yyval.id = yystack.l_mark[-2].id;
-	arbre fils[2] = {createArbre(yystack.l_mark[-2].id,NULL), createArbre(yystack.l_mark[0].id,NULL)};
-	arbre express = createArbre(yystack.l_mark[-1].id,fils);
-	afficherArbre(express);
+	noeud *n = creerNoeud(yystack.l_mark[-1].id,2);
+	n->fils[0] = creerNoeud(yystack.l_mark[-2].id,0);
+	n->fils[1] = creerNoeud(yystack.l_mark[0].id,0);
+	afficherArbre(n);
+	arbreToDot(n);
 	}
-#line 1568 "y.tab.c"
+#line 1574 "y.tab.c"
 break;
 case 56:
-#line 146 "miniC.y"
+#line 149 "miniC.y"
 	{yyval.id = "+"; }
-#line 1573 "y.tab.c"
+#line 1579 "y.tab.c"
 break;
 case 57:
-#line 147 "miniC.y"
+#line 150 "miniC.y"
 	{yyval.id = "-"; }
-#line 1578 "y.tab.c"
+#line 1584 "y.tab.c"
 break;
 case 58:
-#line 148 "miniC.y"
+#line 151 "miniC.y"
 	{yyval.id = "*"; }
-#line 1583 "y.tab.c"
+#line 1589 "y.tab.c"
 break;
 case 59:
-#line 149 "miniC.y"
+#line 152 "miniC.y"
 	{yyval.id = "/"; }
-#line 1588 "y.tab.c"
+#line 1594 "y.tab.c"
 break;
 case 60:
-#line 150 "miniC.y"
+#line 153 "miniC.y"
 	{yyval.id = "<<"; }
-#line 1593 "y.tab.c"
+#line 1599 "y.tab.c"
 break;
 case 61:
-#line 151 "miniC.y"
+#line 154 "miniC.y"
 	{yyval.id = ">>"; }
-#line 1598 "y.tab.c"
+#line 1604 "y.tab.c"
 break;
 case 62:
-#line 152 "miniC.y"
+#line 155 "miniC.y"
 	{yyval.id = "&="; }
-#line 1603 "y.tab.c"
+#line 1609 "y.tab.c"
 break;
 case 63:
-#line 153 "miniC.y"
+#line 156 "miniC.y"
 	{yyval.id = "|="; }
-#line 1608 "y.tab.c"
+#line 1614 "y.tab.c"
 break;
 case 64:
-#line 156 "miniC.y"
+#line 159 "miniC.y"
 	{yyval.id = "&&"; }
-#line 1613 "y.tab.c"
+#line 1619 "y.tab.c"
 break;
 case 65:
-#line 157 "miniC.y"
+#line 160 "miniC.y"
 	{yyval.id = "||"; }
-#line 1618 "y.tab.c"
+#line 1624 "y.tab.c"
 break;
 case 66:
-#line 160 "miniC.y"
+#line 163 "miniC.y"
 	{yyval.id = "<"; }
-#line 1623 "y.tab.c"
+#line 1629 "y.tab.c"
 break;
 case 67:
-#line 161 "miniC.y"
+#line 164 "miniC.y"
 	{yyval.id = ">"; }
-#line 1628 "y.tab.c"
+#line 1634 "y.tab.c"
 break;
 case 68:
-#line 162 "miniC.y"
+#line 165 "miniC.y"
 	{yyval.id = ">="; }
-#line 1633 "y.tab.c"
+#line 1639 "y.tab.c"
 break;
 case 69:
-#line 163 "miniC.y"
+#line 166 "miniC.y"
 	{yyval.id = "<="; }
-#line 1638 "y.tab.c"
+#line 1644 "y.tab.c"
 break;
 case 70:
-#line 164 "miniC.y"
+#line 167 "miniC.y"
 	{yyval.id = "="; }
-#line 1643 "y.tab.c"
+#line 1649 "y.tab.c"
 break;
 case 71:
-#line 165 "miniC.y"
+#line 168 "miniC.y"
 	{yyval.id = "!="; }
-#line 1648 "y.tab.c"
+#line 1654 "y.tab.c"
 break;
-#line 1650 "y.tab.c"
+#line 1656 "y.tab.c"
     default:
         break;
     }

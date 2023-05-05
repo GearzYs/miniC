@@ -1,12 +1,24 @@
-#ifndef _ARBRE_H
-#define _ARBRE_H
+#ifndef ARBRE_H
+#define ARBRE_H
 
-typedef struct arbre {
-  char* val;
-  struct arbre *fils[2];
-} arbre;
+typedef struct noeud {
+    char *val;             // Valeur du noeud
+    struct noeud **fils;   // Tableau de pointeurs vers les fils
+    int nb_fils;           // Nombre de fils
+} noeud;
 
-arbre *createArbre(char* val, arbre *fils[]);
-void afficherArbre(arbre *a);
+// Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
+noeud* creerNoeud(char* val, int nb_fils);
 
-#endif
+// Affichage récursif de l'arbre à partir d'un noeud donné
+void afficherArbre(noeud* n);
+
+#endif /* ARBRE_H */
+
+void arbreToDot(noeud* n);
+void nodeToDot(FILE *f, noeud* n);
+void linkNodeDot(FILE *f, noeud* n);
+void startFile();
+void endFile();
+void freeArbre();
+void clearFile();
