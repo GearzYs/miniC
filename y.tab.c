@@ -24,6 +24,8 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include "parsingMini.h"
+#include <string.h>
+#include <stdbool.h>
 
 extern int chars;
 
@@ -34,14 +36,14 @@ void yyerror (char *s);
 #endif
 #ifndef YYSTYPE_IS_DECLARED
 #define YYSTYPE_IS_DECLARED 1
-#line 11 "miniC.y"
+#line 13 "miniC.y"
 typedef union YYSTYPE{
 	int val;
 	char* id;
 	noeud *noeud;
 } YYSTYPE;
 #endif /* !YYSTYPE_IS_DECLARED */
-#line 45 "y.tab.c"
+#line 47 "y.tab.c"
 
 /* compatibility with bison */
 #ifdef YYPARSE_PARAM
@@ -601,9 +603,55 @@ static YYINT  *yylexp = 0;
 
 static YYINT  *yylexemes = 0;
 #endif /* YYBTYACC */
-#line 174 "miniC.y"
+#line 176 "miniC.y"
 
 extern int yylineno;
+
+void printStack(SymbolStack* stack) {
+    Symbol* current = stack->top;
+    while (current != NULL) {
+        printf("Nom : %s, Type : %d\n", current->name, current->type);
+        current = current->next;
+    }
+} 
+void test() {
+    SymbolStack stack;
+    initStack(&stack);
+    int a = 5;
+    int b[] = {1, 2, 3};
+    int c[] = {4, 5, 6};
+    int size_b = sizeof(b)/sizeof(b[0]);
+	int size_c = sizeof(c)/sizeof(c[0]);
+
+	// Ajout de symboles à la pile
+	push(&stack, "x", a, NULL, 0, NULL, INTEGER);
+	push(&stack, "y", 0, b, size_b, NULL, INTARRAY);
+	push(&stack, "z", 0, c, size_c, NULL, INTARRAY);
+    // Affichage de la pile pour déboguer
+    printf("Pile de symboles :\n");
+    printStack(&stack);
+    
+    // Recherche de symboles dans la pile
+    printf("x = %d\n", *lookup(&stack, "x"));
+    printf("y[0] = %d\n", lookup(&stack, "y")[0]);
+    printf("y[1] = %d\n", lookup(&stack, "y")[1]);
+    printf("y[2] = %d\n", lookup(&stack, "y")[2]);
+    printf("z[0] = %d\n", lookup(&stack, "z")[0]);
+    printf("z[1] = %d\n", lookup(&stack, "z")[1]);
+    printf("z[2] = %d\n", lookup(&stack, "z")[2]);
+
+    // Dépilement des symboles de la pile
+    Symbol symbol1 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol1.name);
+    Symbol symbol2 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol2.name);
+    Symbol symbol3 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol3.name);
+    
+    // Destruction de la pile
+    freeStack(&stack);
+}
+
 
 void yyerror(char *s){
 	 fprintf(stderr, " line %d: %s\n", yylineno, s);
@@ -617,10 +665,10 @@ int yywrap() {
 int main(void) {
 	clearFile();
 	startFile();
-	while(yyparse());
+	test();
 	endFile();
 }
-#line 624 "y.tab.c"
+#line 672 "y.tab.c"
 
 /* For use in generated program */
 #define yydepth (int)(yystack.s_mark - yystack.s_base)
@@ -1291,278 +1339,278 @@ yyreduce:
     switch (yyn)
     {
 case 1:
-#line 38 "miniC.y"
+#line 40 "miniC.y"
 	{}
-#line 1297 "y.tab.c"
+#line 1345 "y.tab.c"
 break;
 case 2:
-#line 41 "miniC.y"
+#line 43 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1302 "y.tab.c"
+#line 1350 "y.tab.c"
 break;
 case 3:
-#line 42 "miniC.y"
+#line 44 "miniC.y"
 	{yyval.id=" ";}
-#line 1307 "y.tab.c"
+#line 1355 "y.tab.c"
 break;
 case 4:
-#line 45 "miniC.y"
+#line 47 "miniC.y"
 	{yyval.id=yystack.l_mark[-1].id;}
-#line 1312 "y.tab.c"
+#line 1360 "y.tab.c"
 break;
 case 5:
-#line 46 "miniC.y"
+#line 48 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1317 "y.tab.c"
+#line 1365 "y.tab.c"
 break;
 case 6:
-#line 49 "miniC.y"
+#line 51 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1322 "y.tab.c"
+#line 1370 "y.tab.c"
 break;
 case 7:
-#line 52 "miniC.y"
+#line 54 "miniC.y"
 	{yyval.id=yystack.l_mark[-2].id;}
-#line 1327 "y.tab.c"
+#line 1375 "y.tab.c"
 break;
 case 8:
-#line 53 "miniC.y"
+#line 55 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id; }
-#line 1332 "y.tab.c"
+#line 1380 "y.tab.c"
 break;
 case 9:
-#line 56 "miniC.y"
+#line 58 "miniC.y"
 	{ yyval.id = yystack.l_mark[0].id;}
-#line 1337 "y.tab.c"
+#line 1385 "y.tab.c"
 break;
 case 10:
-#line 57 "miniC.y"
+#line 59 "miniC.y"
 	{yyval.id="0";}
-#line 1342 "y.tab.c"
+#line 1390 "y.tab.c"
 break;
 case 11:
-#line 60 "miniC.y"
+#line 62 "miniC.y"
 	{yyval.id=yystack.l_mark[-8].id;}
-#line 1347 "y.tab.c"
+#line 1395 "y.tab.c"
 break;
 case 12:
-#line 61 "miniC.y"
+#line 63 "miniC.y"
 	{yyval.id=EXTERN;}
-#line 1352 "y.tab.c"
+#line 1400 "y.tab.c"
 break;
 case 13:
-#line 64 "miniC.y"
+#line 66 "miniC.y"
 	{yyval.id = "void";}
-#line 1357 "y.tab.c"
+#line 1405 "y.tab.c"
 break;
 case 14:
-#line 65 "miniC.y"
+#line 67 "miniC.y"
 	{yyval.id = "int";}
-#line 1362 "y.tab.c"
+#line 1410 "y.tab.c"
 break;
 case 15:
-#line 69 "miniC.y"
+#line 71 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1367 "y.tab.c"
+#line 1415 "y.tab.c"
 break;
 case 16:
-#line 70 "miniC.y"
+#line 72 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1372 "y.tab.c"
+#line 1420 "y.tab.c"
 break;
 case 17:
-#line 71 "miniC.y"
+#line 73 "miniC.y"
 	{yyval.id=" ";}
-#line 1377 "y.tab.c"
+#line 1425 "y.tab.c"
 break;
 case 18:
-#line 75 "miniC.y"
+#line 77 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1382 "y.tab.c"
+#line 1430 "y.tab.c"
 break;
 case 19:
-#line 79 "miniC.y"
+#line 81 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1387 "y.tab.c"
+#line 1435 "y.tab.c"
 break;
 case 20:
-#line 80 "miniC.y"
+#line 82 "miniC.y"
 	{yyval.id=" ";}
-#line 1392 "y.tab.c"
+#line 1440 "y.tab.c"
 break;
 case 21:
-#line 83 "miniC.y"
-	{yyval.id=yystack.l_mark[0].id;}
-#line 1397 "y.tab.c"
-break;
-case 22:
-#line 84 "miniC.y"
-	{yyval.id=yystack.l_mark[0].id;}
-#line 1402 "y.tab.c"
-break;
-case 23:
 #line 85 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1407 "y.tab.c"
+#line 1445 "y.tab.c"
 break;
-case 24:
+case 22:
 #line 86 "miniC.y"
-	{yyval.id=yystack.l_mark[-1].id;}
-#line 1412 "y.tab.c"
+	{yyval.id=yystack.l_mark[0].id;}
+#line 1450 "y.tab.c"
 break;
-case 25:
+case 23:
 #line 87 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1417 "y.tab.c"
+#line 1455 "y.tab.c"
+break;
+case 24:
+#line 88 "miniC.y"
+	{yyval.id=yystack.l_mark[-1].id;}
+#line 1460 "y.tab.c"
+break;
+case 25:
+#line 89 "miniC.y"
+	{yyval.id=yystack.l_mark[0].id;}
+#line 1465 "y.tab.c"
 break;
 case 26:
-#line 88 "miniC.y"
+#line 90 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1422 "y.tab.c"
+#line 1470 "y.tab.c"
 break;
 case 27:
-#line 91 "miniC.y"
+#line 93 "miniC.y"
 	{yyval.id=FOR;}
-#line 1427 "y.tab.c"
+#line 1475 "y.tab.c"
 break;
 case 28:
-#line 92 "miniC.y"
+#line 94 "miniC.y"
 	{yyval.id= WHILE;}
-#line 1432 "y.tab.c"
+#line 1480 "y.tab.c"
 break;
 case 29:
-#line 93 "miniC.y"
+#line 95 "miniC.y"
 	{yyerror("reenter last");
                         yyerrok; }
-#line 1438 "y.tab.c"
+#line 1486 "y.tab.c"
 break;
 case 30:
-#line 97 "miniC.y"
+#line 99 "miniC.y"
 	{yyval.id=IF;}
-#line 1443 "y.tab.c"
+#line 1491 "y.tab.c"
 break;
 case 31:
-#line 98 "miniC.y"
+#line 100 "miniC.y"
 	{yyval.id=ELSE;}
-#line 1448 "y.tab.c"
+#line 1496 "y.tab.c"
 break;
 case 32:
-#line 99 "miniC.y"
+#line 101 "miniC.y"
 	{yyval.id=SWITCH;}
-#line 1453 "y.tab.c"
+#line 1501 "y.tab.c"
 break;
 case 33:
-#line 100 "miniC.y"
+#line 102 "miniC.y"
 	{yyval.id=CASE;}
-#line 1458 "y.tab.c"
+#line 1506 "y.tab.c"
 break;
 case 34:
-#line 101 "miniC.y"
+#line 103 "miniC.y"
 	{yyval.id=DEFAULT;}
-#line 1463 "y.tab.c"
+#line 1511 "y.tab.c"
 break;
 case 35:
-#line 104 "miniC.y"
+#line 106 "miniC.y"
 	{yyval.id=BREAK;}
-#line 1468 "y.tab.c"
+#line 1516 "y.tab.c"
 break;
 case 36:
-#line 105 "miniC.y"
+#line 107 "miniC.y"
 	{yyval.id=RETURN;}
-#line 1473 "y.tab.c"
+#line 1521 "y.tab.c"
 break;
 case 37:
-#line 106 "miniC.y"
+#line 108 "miniC.y"
 	{yyval.id=RETURN;}
-#line 1478 "y.tab.c"
+#line 1526 "y.tab.c"
 break;
 case 38:
-#line 109 "miniC.y"
+#line 111 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1483 "y.tab.c"
+#line 1531 "y.tab.c"
 break;
 case 39:
-#line 112 "miniC.y"
+#line 114 "miniC.y"
 	{yyval.id="0";}
-#line 1488 "y.tab.c"
+#line 1536 "y.tab.c"
 break;
 case 40:
-#line 115 "miniC.y"
+#line 117 "miniC.y"
 	{yyval.id=yystack.l_mark[-4].id;}
-#line 1493 "y.tab.c"
+#line 1541 "y.tab.c"
 break;
 case 41:
-#line 118 "miniC.y"
+#line 120 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1498 "y.tab.c"
+#line 1546 "y.tab.c"
 break;
 case 42:
-#line 119 "miniC.y"
+#line 121 "miniC.y"
 	{yyval.id ="0";/* $$ = $1[$3] ;*/}
-#line 1503 "y.tab.c"
+#line 1551 "y.tab.c"
 break;
 case 43:
-#line 122 "miniC.y"
+#line 124 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1508 "y.tab.c"
+#line 1556 "y.tab.c"
 break;
 case 44:
-#line 123 "miniC.y"
+#line 125 "miniC.y"
 	{yyval.id="0";}
-#line 1513 "y.tab.c"
+#line 1561 "y.tab.c"
 break;
 case 45:
-#line 124 "miniC.y"
-	{yyval.id = yystack.l_mark[0].id;}
-#line 1518 "y.tab.c"
-break;
-case 46:
-#line 125 "miniC.y"
-	{yyval.id=yystack.l_mark[0].id;}
-#line 1523 "y.tab.c"
-break;
-case 47:
 #line 126 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1528 "y.tab.c"
+#line 1566 "y.tab.c"
+break;
+case 46:
+#line 127 "miniC.y"
+	{yyval.id=yystack.l_mark[0].id;}
+#line 1571 "y.tab.c"
+break;
+case 47:
+#line 128 "miniC.y"
+	{yyval.id = yystack.l_mark[0].id;}
+#line 1576 "y.tab.c"
 break;
 case 48:
-#line 127 "miniC.y"
+#line 129 "miniC.y"
 	{yyval.id = yystack.l_mark[-3].id;}
-#line 1533 "y.tab.c"
+#line 1581 "y.tab.c"
 break;
 case 49:
-#line 131 "miniC.y"
+#line 133 "miniC.y"
 	{yyval.id=yystack.l_mark[-2].id;}
-#line 1538 "y.tab.c"
+#line 1586 "y.tab.c"
 break;
 case 50:
-#line 132 "miniC.y"
+#line 134 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1543 "y.tab.c"
+#line 1591 "y.tab.c"
 break;
 case 51:
-#line 133 "miniC.y"
+#line 135 "miniC.y"
 	{yyval.id=" ";}
-#line 1548 "y.tab.c"
+#line 1596 "y.tab.c"
 break;
 case 52:
-#line 137 "miniC.y"
-	{yyval.id = yystack.l_mark[-1].id;}
-#line 1553 "y.tab.c"
-break;
-case 53:
-#line 138 "miniC.y"
-	{yyval.id="0";}
-#line 1558 "y.tab.c"
-break;
-case 54:
 #line 139 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1563 "y.tab.c"
+#line 1601 "y.tab.c"
+break;
+case 53:
+#line 140 "miniC.y"
+	{yyval.id="0";}
+#line 1606 "y.tab.c"
+break;
+case 54:
+#line 141 "miniC.y"
+	{yyval.id = yystack.l_mark[-1].id;}
+#line 1611 "y.tab.c"
 break;
 case 55:
-#line 140 "miniC.y"
+#line 142 "miniC.y"
 	{yyval.id = yystack.l_mark[-2].id;
 	noeud *n = creerNoeud("IF",1);
 	noeud *n1 = creerNoeud(yystack.l_mark[-1].id,2);
@@ -1572,89 +1620,89 @@ case 55:
 	afficherArbre(n);
 	generateDotFile(n);
 	}
-#line 1576 "y.tab.c"
+#line 1624 "y.tab.c"
 break;
 case 56:
-#line 151 "miniC.y"
+#line 153 "miniC.y"
 	{yyval.id = "+"; }
-#line 1581 "y.tab.c"
+#line 1629 "y.tab.c"
 break;
 case 57:
-#line 152 "miniC.y"
+#line 154 "miniC.y"
 	{yyval.id = "-"; }
-#line 1586 "y.tab.c"
+#line 1634 "y.tab.c"
 break;
 case 58:
-#line 153 "miniC.y"
+#line 155 "miniC.y"
 	{yyval.id = "*"; }
-#line 1591 "y.tab.c"
+#line 1639 "y.tab.c"
 break;
 case 59:
-#line 154 "miniC.y"
+#line 156 "miniC.y"
 	{yyval.id = "/"; }
-#line 1596 "y.tab.c"
+#line 1644 "y.tab.c"
 break;
 case 60:
-#line 155 "miniC.y"
+#line 157 "miniC.y"
 	{yyval.id = "<<"; }
-#line 1601 "y.tab.c"
+#line 1649 "y.tab.c"
 break;
 case 61:
-#line 156 "miniC.y"
+#line 158 "miniC.y"
 	{yyval.id = ">>"; }
-#line 1606 "y.tab.c"
+#line 1654 "y.tab.c"
 break;
 case 62:
-#line 157 "miniC.y"
+#line 159 "miniC.y"
 	{yyval.id = "&="; }
-#line 1611 "y.tab.c"
+#line 1659 "y.tab.c"
 break;
 case 63:
-#line 158 "miniC.y"
+#line 160 "miniC.y"
 	{yyval.id = "|="; }
-#line 1616 "y.tab.c"
+#line 1664 "y.tab.c"
 break;
 case 64:
-#line 161 "miniC.y"
+#line 163 "miniC.y"
 	{yyval.id = "&&"; }
-#line 1621 "y.tab.c"
+#line 1669 "y.tab.c"
 break;
 case 65:
-#line 162 "miniC.y"
+#line 164 "miniC.y"
 	{yyval.id = "||"; }
-#line 1626 "y.tab.c"
+#line 1674 "y.tab.c"
 break;
 case 66:
-#line 165 "miniC.y"
+#line 167 "miniC.y"
 	{yyval.id = "<"; }
-#line 1631 "y.tab.c"
+#line 1679 "y.tab.c"
 break;
 case 67:
-#line 166 "miniC.y"
+#line 168 "miniC.y"
 	{yyval.id = ">"; }
-#line 1636 "y.tab.c"
+#line 1684 "y.tab.c"
 break;
 case 68:
-#line 167 "miniC.y"
+#line 169 "miniC.y"
 	{yyval.id = ">="; }
-#line 1641 "y.tab.c"
+#line 1689 "y.tab.c"
 break;
 case 69:
-#line 168 "miniC.y"
+#line 170 "miniC.y"
 	{yyval.id = "<="; }
-#line 1646 "y.tab.c"
+#line 1694 "y.tab.c"
 break;
 case 70:
-#line 169 "miniC.y"
+#line 171 "miniC.y"
 	{yyval.id = "=="; }
-#line 1651 "y.tab.c"
+#line 1699 "y.tab.c"
 break;
 case 71:
-#line 170 "miniC.y"
+#line 172 "miniC.y"
 	{yyval.id = "!="; }
-#line 1656 "y.tab.c"
+#line 1704 "y.tab.c"
 break;
-#line 1658 "y.tab.c"
+#line 1706 "y.tab.c"
     default:
         break;
     }

@@ -2,6 +2,8 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include "parsingMini.h"
+#include <string.h>
+#include <stdbool.h>
 
 extern int chars;
 
@@ -174,6 +176,52 @@ binary_comp	:
 
 extern int yylineno;
 
+void printStack(SymbolStack* stack) {
+    Symbol* current = stack->top;
+    while (current != NULL) {
+        printf("Nom : %s, Type : %d\n", current->name, current->type);
+        current = current->next;
+    }
+} 
+void test() {
+    SymbolStack stack;
+    initStack(&stack);
+    int a = 5;
+    int b[] = {1, 2, 3};
+    int c[] = {4, 5, 6};
+    int size_b = sizeof(b)/sizeof(b[0]);
+	int size_c = sizeof(c)/sizeof(c[0]);
+
+	// Ajout de symboles à la pile
+	push(&stack, "x", a, NULL, 0, NULL, INTEGER);
+	push(&stack, "y", 0, b, size_b, NULL, INTARRAY);
+	push(&stack, "z", 0, c, size_c, NULL, INTARRAY);
+    // Affichage de la pile pour déboguer
+    printf("Pile de symboles :\n");
+    printStack(&stack);
+    
+    // Recherche de symboles dans la pile
+    printf("x = %d\n", *lookup(&stack, "x"));
+    printf("y[0] = %d\n", lookup(&stack, "y")[0]);
+    printf("y[1] = %d\n", lookup(&stack, "y")[1]);
+    printf("y[2] = %d\n", lookup(&stack, "y")[2]);
+    printf("z[0] = %d\n", lookup(&stack, "z")[0]);
+    printf("z[1] = %d\n", lookup(&stack, "z")[1]);
+    printf("z[2] = %d\n", lookup(&stack, "z")[2]);
+
+    // Dépilement des symboles de la pile
+    Symbol symbol1 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol1.name);
+    Symbol symbol2 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol2.name);
+    Symbol symbol3 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol3.name);
+    
+    // Destruction de la pile
+    freeStack(&stack);
+}
+
+
 void yyerror(char *s){
 	 fprintf(stderr, " line %d: %s\n", yylineno, s);
 	 exit(1);
@@ -186,6 +234,6 @@ int yywrap() {
 int main(void) {
 	clearFile();
 	startFile();
-	while(yyparse());
+	test();
 	endFile();
 }

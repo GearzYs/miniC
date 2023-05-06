@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #ifndef ARBRE_H
 #define ARBRE_H
 
@@ -36,3 +40,41 @@ void endFile();
 
 //Vide le fichier .dot
 void clearFile();
+
+
+// ############################################################################## //
+// ############################################################################## //
+// def symbol_h //
+#ifndef SYMBOL_H
+#define SYMBOL_H
+
+typedef enum {
+    INTEGER,
+    INTARRAY,
+    FUNCTION
+} SymbolType;
+
+typedef struct Symbol {
+    char name[20];
+    SymbolType type;
+    union {
+        int value;
+        int* array;
+        void* function;
+    } data;
+    int size; 
+    struct Symbol* next;
+} Symbol;
+
+// contient un pointeur vers le sommet de la pile, qui est le dernier symbole ajouté à la pile
+typedef struct SymbolStack {
+    Symbol* top;
+} SymbolStack;
+
+void initStack(SymbolStack* stack);
+void push(SymbolStack* stack, char* name, int value, int* array, int size, void* function, SymbolType type);
+int* lookup(SymbolStack* stack, char* name);
+Symbol pop(SymbolStack* stack);
+void freeStack(SymbolStack* stack);
+#endif /* SYMBOL_H */
+
