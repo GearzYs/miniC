@@ -143,7 +143,7 @@ int* lookup(SymbolStack* stack, char* name) {
             if (current->type == INTEGER) {
                return &(current->data.value);
             } else if (current->type == INTARRAY) {
-                return current;
+                return current->data.array;
             } else if (current->type == FUNCTION) {
                 printf("%s : FUNCTION\n", name);
                 return NULL;
@@ -166,7 +166,6 @@ Symbol pop(SymbolStack* stack) {
     }
     Symbol symbol = *(stack->top);
     stack->top = stack->top->next;
-    free(symbol.next);
     return symbol;
 }
 

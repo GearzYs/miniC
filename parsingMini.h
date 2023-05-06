@@ -55,7 +55,7 @@ typedef enum {
 } SymbolType;
 
 typedef struct Symbol {
-    char name[20];
+    char name[2000];
     SymbolType type;
     union {
         int value;
