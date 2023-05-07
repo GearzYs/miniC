@@ -608,46 +608,65 @@ static YYINT  *yylexemes = 0;
 extern int yylineno;
 
 void printStack(SymbolStack* stack) {
+    printf("-----Stack-----\n");
     Symbol* current = stack->top;
     while (current != NULL) {
-        printf("Nom : %s, Type : %d\n", current->name, current->type);
+        printf("%s : ", current->name);
+        if (current->type == INTEGER) {
+            printf("%d\n", current->data.value);
+        } else if (current->type == INTARRAY) {
+            printf("{");
+            for (int i = 0; i < current->size; i++) {
+                printf("%d", current->data.array[i]);
+                if (i < current->size - 1) {
+                    printf(", ");
+                }
+            }
+            printf("}\n");
+        } else if (current->type == FUNCTION) {
+            printf("FUNCTION\n");
+        } else {
+            printf("UNKNOWN TYPE\n");
+        }
         current = current->next;
     }
-} 
+    printf("---------------\n");
+}
+
 void test() {
     SymbolStack stack;
     initStack(&stack);
-    int a = 5;
-    int b[] = {1, 2, 3};
-    int c[] = {4, 5, 6};
-    int size_b = sizeof(b)/sizeof(b[0]);
-	int size_c = sizeof(c)/sizeof(c[0]);
 
-	// Ajout de symboles à la pile
-	push(&stack, "x", a, NULL, 0, NULL, INTEGER);
-	push(&stack, "y", 0, b, size_b, NULL, INTARRAY);
-	push(&stack, "z", 0, c, size_c, NULL, INTARRAY);
+    // Ajout de symboles à la pile
+    push(&stack, "x", 5, NULL, 0, NULL, INTEGER);
+    push(&stack, "y", 0, (int[]){1,2,3}, 3, NULL, INTARRAY);
+    /* push(&stack, "z", 0, NULL, 0, &test, FUNCTION); */
+
     // Affichage de la pile pour déboguer
     printf("Pile de symboles :\n");
     printStack(&stack);
-    
-    // Recherche de symboles dans la pile
-    printf("x = %d\n", *lookup(&stack, "x"));
-    printf("y[0] = %d\n", lookup(&stack, "y")[0]);
-    printf("y[1] = %d\n", lookup(&stack, "y")[1]);
-    printf("y[2] = %d\n", lookup(&stack, "y")[2]);
-    printf("z[0] = %d\n", lookup(&stack, "z")[0]);
-    printf("z[1] = %d\n", lookup(&stack, "z")[1]);
-    printf("z[2] = %d\n", lookup(&stack, "z")[2]);
+
+    // Test de getSymbolType()
+    Symbol* sym_x = lookup(&stack, "x");
+    Symbol* sym_y = lookup(&stack, "y");
+    /* Symbol* sym_z = lookup(&stack, "z"); */
+    printf("Type de symbole x : %d\n", getTypeByName(&stack, "x")); // doit envoyer 0
+	printf("Type de symbole y : %d\n", getTypeByName(&stack, "y")); // doit envoyer 1
+	/* printf("Type de symbole z : %d\n", getTypeByName(&stack, "z")); */
+
+
+	/* printf("y[0] de base = %d\n", lookup(&stack, "y")[0]);
+	// Test de assign_array() on a soucis car il dit que cest pas un tab a mon avis
+	// vu que l'enum envoie 0,1, 2 selon les types faut voir si c pas ca le soucis
+	assign_array(&stack, "y", 0, 4);
+	printf("y[0] après assignation = %d\n", lookup(&stack, "y")[0]); */
+
 
     // Dépilement des symboles de la pile
     Symbol symbol1 = pop(&stack);
-    printf("Symbole depile : %s\n", symbol1.name);
     Symbol symbol2 = pop(&stack);
-    printf("Symbole depile : %s\n", symbol2.name);
-    Symbol symbol3 = pop(&stack);
-    printf("Symbole depile : %s\n", symbol3.name);
-    
+    printf("Symboles depilés : %s, %s\n", symbol1.name, symbol2.name);
+
     // Destruction de la pile
     freeStack(&stack);
 }
@@ -668,7 +687,70 @@ int main(void) {
 	test();
 	endFile();
 }
-#line 672 "y.tab.c"
+
+
+
+
+
+/*
+c ma save de teste touche pas 
+void test() {
+    SymbolStack stack;
+    initStack(&stack);
+    int a = 5;
+    int b[] = {1, 2, 3};
+    int c[] = {4, 5, 6};
+    int size_b = sizeof(b)/sizeof(b[0]);
+	int size_c = sizeof(c)/sizeof(c[0]);
+
+	// Ajout de symboles à la pile
+	push(&stack, "x", a, NULL, 0, NULL, INTEGER);
+	push(&stack, "y", 0, b, size_b, NULL, INTARRAY);
+	push(&stack, "z", 0, c, size_c, NULL, INTARRAY);
+	// on va teste de faire un changement de valeur de t 
+	push(&stack, "t", 2, NULL, 0, NULL, INTEGER);
+    // Affichage de la pile pour déboguer
+    printf("Pile de symboles :\n");
+    printStack(&stack);
+    
+    // Recherche de symboles dans la pile
+	printf("Taille de b : %d\n", size_b);
+
+    printf("x = %d\n", *lookup(&stack, "x"));
+    printf("y[0] = %d\n", lookup(&stack, "y")[0]);
+	// Modification de la valeur de y[1] à 10
+    int* ptr_y1 = assign_array(&stack, "y", 1, 10);
+    if (ptr_y1 != NULL) {
+        printf("Nouvelle valeur de y[1] : %d\n", *ptr_y1);
+    }
+    printf("init z[0] = %d\n", lookup(&stack, "z")[0]);
+	//on regarde la valeur de t
+	printf("valeur initial de t = %d\n", *lookup(&stack, "t"));
+	int new_t = 10;
+	// avant de donner la nouvelle valeur de t on doit liberer l'ancienne valeur
+	// on doit verif si le param est bien une vrai var int car meme si 
+	// on met une char quand on appelle la fonction/
+	// le code va convertir la valeur de la var char en int
+	// a voir comment faire 
+	//on change la valeur de t
+	int* t = assign(&stack, "t", new_t);
+	printf("new valeur de t = %d\n", *t);
+
+    // Dépilement des symboles de la pile
+    Symbol symbol1 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol1.name);
+    Symbol symbol2 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol2.name);
+    Symbol symbol3 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol3.name);
+	Symbol symbol4 = pop(&stack);
+	printf("Symbole depile : %s\n", symbol4.name);
+    
+    // Destruction de la pile
+    freeStack(&stack);
+}
+*/
+#line 754 "y.tab.c"
 
 /* For use in generated program */
 #define yydepth (int)(yystack.s_mark - yystack.s_base)
@@ -1341,273 +1423,273 @@ yyreduce:
 case 1:
 #line 40 "miniC.y"
 	{}
-#line 1345 "y.tab.c"
+#line 1427 "y.tab.c"
 break;
 case 2:
 #line 43 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1350 "y.tab.c"
+#line 1432 "y.tab.c"
 break;
 case 3:
 #line 44 "miniC.y"
 	{yyval.id=" ";}
-#line 1355 "y.tab.c"
+#line 1437 "y.tab.c"
 break;
 case 4:
 #line 47 "miniC.y"
 	{yyval.id=yystack.l_mark[-1].id;}
-#line 1360 "y.tab.c"
+#line 1442 "y.tab.c"
 break;
 case 5:
 #line 48 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1365 "y.tab.c"
+#line 1447 "y.tab.c"
 break;
 case 6:
 #line 51 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1370 "y.tab.c"
+#line 1452 "y.tab.c"
 break;
 case 7:
 #line 54 "miniC.y"
 	{yyval.id=yystack.l_mark[-2].id;}
-#line 1375 "y.tab.c"
+#line 1457 "y.tab.c"
 break;
 case 8:
 #line 55 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id; }
-#line 1380 "y.tab.c"
+#line 1462 "y.tab.c"
 break;
 case 9:
 #line 58 "miniC.y"
 	{ yyval.id = yystack.l_mark[0].id;}
-#line 1385 "y.tab.c"
+#line 1467 "y.tab.c"
 break;
 case 10:
 #line 59 "miniC.y"
 	{yyval.id="0";}
-#line 1390 "y.tab.c"
+#line 1472 "y.tab.c"
 break;
 case 11:
 #line 62 "miniC.y"
 	{yyval.id=yystack.l_mark[-8].id;}
-#line 1395 "y.tab.c"
+#line 1477 "y.tab.c"
 break;
 case 12:
 #line 63 "miniC.y"
 	{yyval.id=EXTERN;}
-#line 1400 "y.tab.c"
+#line 1482 "y.tab.c"
 break;
 case 13:
 #line 66 "miniC.y"
 	{yyval.id = "void";}
-#line 1405 "y.tab.c"
+#line 1487 "y.tab.c"
 break;
 case 14:
 #line 67 "miniC.y"
 	{yyval.id = "int";}
-#line 1410 "y.tab.c"
+#line 1492 "y.tab.c"
 break;
 case 15:
 #line 71 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1415 "y.tab.c"
+#line 1497 "y.tab.c"
 break;
 case 16:
 #line 72 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1420 "y.tab.c"
+#line 1502 "y.tab.c"
 break;
 case 17:
 #line 73 "miniC.y"
 	{yyval.id=" ";}
-#line 1425 "y.tab.c"
+#line 1507 "y.tab.c"
 break;
 case 18:
 #line 77 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1430 "y.tab.c"
+#line 1512 "y.tab.c"
 break;
 case 19:
 #line 81 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1435 "y.tab.c"
+#line 1517 "y.tab.c"
 break;
 case 20:
 #line 82 "miniC.y"
 	{yyval.id=" ";}
-#line 1440 "y.tab.c"
+#line 1522 "y.tab.c"
 break;
 case 21:
 #line 85 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1445 "y.tab.c"
+#line 1527 "y.tab.c"
 break;
 case 22:
 #line 86 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1450 "y.tab.c"
+#line 1532 "y.tab.c"
 break;
 case 23:
 #line 87 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1455 "y.tab.c"
+#line 1537 "y.tab.c"
 break;
 case 24:
 #line 88 "miniC.y"
 	{yyval.id=yystack.l_mark[-1].id;}
-#line 1460 "y.tab.c"
+#line 1542 "y.tab.c"
 break;
 case 25:
 #line 89 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1465 "y.tab.c"
+#line 1547 "y.tab.c"
 break;
 case 26:
 #line 90 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1470 "y.tab.c"
+#line 1552 "y.tab.c"
 break;
 case 27:
 #line 93 "miniC.y"
 	{yyval.id=FOR;}
-#line 1475 "y.tab.c"
+#line 1557 "y.tab.c"
 break;
 case 28:
 #line 94 "miniC.y"
 	{yyval.id= WHILE;}
-#line 1480 "y.tab.c"
+#line 1562 "y.tab.c"
 break;
 case 29:
 #line 95 "miniC.y"
 	{yyerror("reenter last");
                         yyerrok; }
-#line 1486 "y.tab.c"
+#line 1568 "y.tab.c"
 break;
 case 30:
 #line 99 "miniC.y"
 	{yyval.id=IF;}
-#line 1491 "y.tab.c"
+#line 1573 "y.tab.c"
 break;
 case 31:
 #line 100 "miniC.y"
 	{yyval.id=ELSE;}
-#line 1496 "y.tab.c"
+#line 1578 "y.tab.c"
 break;
 case 32:
 #line 101 "miniC.y"
 	{yyval.id=SWITCH;}
-#line 1501 "y.tab.c"
+#line 1583 "y.tab.c"
 break;
 case 33:
 #line 102 "miniC.y"
 	{yyval.id=CASE;}
-#line 1506 "y.tab.c"
+#line 1588 "y.tab.c"
 break;
 case 34:
 #line 103 "miniC.y"
 	{yyval.id=DEFAULT;}
-#line 1511 "y.tab.c"
+#line 1593 "y.tab.c"
 break;
 case 35:
 #line 106 "miniC.y"
 	{yyval.id=BREAK;}
-#line 1516 "y.tab.c"
+#line 1598 "y.tab.c"
 break;
 case 36:
 #line 107 "miniC.y"
 	{yyval.id=RETURN;}
-#line 1521 "y.tab.c"
+#line 1603 "y.tab.c"
 break;
 case 37:
 #line 108 "miniC.y"
 	{yyval.id=RETURN;}
-#line 1526 "y.tab.c"
+#line 1608 "y.tab.c"
 break;
 case 38:
 #line 111 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1531 "y.tab.c"
+#line 1613 "y.tab.c"
 break;
 case 39:
 #line 114 "miniC.y"
 	{yyval.id="0";}
-#line 1536 "y.tab.c"
+#line 1618 "y.tab.c"
 break;
 case 40:
 #line 117 "miniC.y"
 	{yyval.id=yystack.l_mark[-4].id;}
-#line 1541 "y.tab.c"
+#line 1623 "y.tab.c"
 break;
 case 41:
 #line 120 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1546 "y.tab.c"
+#line 1628 "y.tab.c"
 break;
 case 42:
 #line 121 "miniC.y"
 	{yyval.id ="0";/* $$ = $1[$3] ;*/}
-#line 1551 "y.tab.c"
+#line 1633 "y.tab.c"
 break;
 case 43:
 #line 124 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1556 "y.tab.c"
+#line 1638 "y.tab.c"
 break;
 case 44:
 #line 125 "miniC.y"
 	{yyval.id="0";}
-#line 1561 "y.tab.c"
+#line 1643 "y.tab.c"
 break;
 case 45:
 #line 126 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1566 "y.tab.c"
+#line 1648 "y.tab.c"
 break;
 case 46:
 #line 127 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1571 "y.tab.c"
+#line 1653 "y.tab.c"
 break;
 case 47:
 #line 128 "miniC.y"
 	{yyval.id = yystack.l_mark[0].id;}
-#line 1576 "y.tab.c"
+#line 1658 "y.tab.c"
 break;
 case 48:
 #line 129 "miniC.y"
 	{yyval.id = yystack.l_mark[-3].id;}
-#line 1581 "y.tab.c"
+#line 1663 "y.tab.c"
 break;
 case 49:
 #line 133 "miniC.y"
 	{yyval.id=yystack.l_mark[-2].id;}
-#line 1586 "y.tab.c"
+#line 1668 "y.tab.c"
 break;
 case 50:
 #line 134 "miniC.y"
 	{yyval.id=yystack.l_mark[0].id;}
-#line 1591 "y.tab.c"
+#line 1673 "y.tab.c"
 break;
 case 51:
 #line 135 "miniC.y"
 	{yyval.id=" ";}
-#line 1596 "y.tab.c"
+#line 1678 "y.tab.c"
 break;
 case 52:
 #line 139 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1601 "y.tab.c"
+#line 1683 "y.tab.c"
 break;
 case 53:
 #line 140 "miniC.y"
 	{yyval.id="0";}
-#line 1606 "y.tab.c"
+#line 1688 "y.tab.c"
 break;
 case 54:
 #line 141 "miniC.y"
 	{yyval.id = yystack.l_mark[-1].id;}
-#line 1611 "y.tab.c"
+#line 1693 "y.tab.c"
 break;
 case 55:
 #line 142 "miniC.y"
@@ -1620,89 +1702,89 @@ case 55:
 	afficherArbre(n);
 	generateDotFile(n);
 	}
-#line 1624 "y.tab.c"
+#line 1706 "y.tab.c"
 break;
 case 56:
 #line 153 "miniC.y"
 	{yyval.id = "+"; }
-#line 1629 "y.tab.c"
+#line 1711 "y.tab.c"
 break;
 case 57:
 #line 154 "miniC.y"
 	{yyval.id = "-"; }
-#line 1634 "y.tab.c"
+#line 1716 "y.tab.c"
 break;
 case 58:
 #line 155 "miniC.y"
 	{yyval.id = "*"; }
-#line 1639 "y.tab.c"
+#line 1721 "y.tab.c"
 break;
 case 59:
 #line 156 "miniC.y"
 	{yyval.id = "/"; }
-#line 1644 "y.tab.c"
+#line 1726 "y.tab.c"
 break;
 case 60:
 #line 157 "miniC.y"
 	{yyval.id = "<<"; }
-#line 1649 "y.tab.c"
+#line 1731 "y.tab.c"
 break;
 case 61:
 #line 158 "miniC.y"
 	{yyval.id = ">>"; }
-#line 1654 "y.tab.c"
+#line 1736 "y.tab.c"
 break;
 case 62:
 #line 159 "miniC.y"
 	{yyval.id = "&="; }
-#line 1659 "y.tab.c"
+#line 1741 "y.tab.c"
 break;
 case 63:
 #line 160 "miniC.y"
 	{yyval.id = "|="; }
-#line 1664 "y.tab.c"
+#line 1746 "y.tab.c"
 break;
 case 64:
 #line 163 "miniC.y"
 	{yyval.id = "&&"; }
-#line 1669 "y.tab.c"
+#line 1751 "y.tab.c"
 break;
 case 65:
 #line 164 "miniC.y"
 	{yyval.id = "||"; }
-#line 1674 "y.tab.c"
+#line 1756 "y.tab.c"
 break;
 case 66:
 #line 167 "miniC.y"
 	{yyval.id = "<"; }
-#line 1679 "y.tab.c"
+#line 1761 "y.tab.c"
 break;
 case 67:
 #line 168 "miniC.y"
 	{yyval.id = ">"; }
-#line 1684 "y.tab.c"
+#line 1766 "y.tab.c"
 break;
 case 68:
 #line 169 "miniC.y"
 	{yyval.id = ">="; }
-#line 1689 "y.tab.c"
+#line 1771 "y.tab.c"
 break;
 case 69:
 #line 170 "miniC.y"
 	{yyval.id = "<="; }
-#line 1694 "y.tab.c"
+#line 1776 "y.tab.c"
 break;
 case 70:
 #line 171 "miniC.y"
 	{yyval.id = "=="; }
-#line 1699 "y.tab.c"
+#line 1781 "y.tab.c"
 break;
 case 71:
 #line 172 "miniC.y"
 	{yyval.id = "!="; }
-#line 1704 "y.tab.c"
+#line 1786 "y.tab.c"
 break;
-#line 1706 "y.tab.c"
+#line 1788 "y.tab.c"
     default:
         break;
     }

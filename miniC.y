@@ -177,46 +177,65 @@ binary_comp	:
 extern int yylineno;
 
 void printStack(SymbolStack* stack) {
+    printf("-----Stack-----\n");
     Symbol* current = stack->top;
     while (current != NULL) {
-        printf("Nom : %s, Type : %d\n", current->name, current->type);
+        printf("%s : ", current->name);
+        if (current->type == INTEGER) {
+            printf("%d\n", current->data.value);
+        } else if (current->type == INTARRAY) {
+            printf("{");
+            for (int i = 0; i < current->size; i++) {
+                printf("%d", current->data.array[i]);
+                if (i < current->size - 1) {
+                    printf(", ");
+                }
+            }
+            printf("}\n");
+        } else if (current->type == FUNCTION) {
+            printf("FUNCTION\n");
+        } else {
+            printf("UNKNOWN TYPE\n");
+        }
         current = current->next;
     }
-} 
+    printf("---------------\n");
+}
+
 void test() {
     SymbolStack stack;
     initStack(&stack);
-    int a = 5;
-    int b[] = {1, 2, 3};
-    int c[] = {4, 5, 6};
-    int size_b = sizeof(b)/sizeof(b[0]);
-	int size_c = sizeof(c)/sizeof(c[0]);
 
-	// Ajout de symboles à la pile
-	push(&stack, "x", a, NULL, 0, NULL, INTEGER);
-	push(&stack, "y", 0, b, size_b, NULL, INTARRAY);
-	push(&stack, "z", 0, c, size_c, NULL, INTARRAY);
+    // Ajout de symboles à la pile
+    push(&stack, "x", 5, NULL, 0, NULL, INTEGER);
+    push(&stack, "y", 0, (int[]){1,2,3}, 3, NULL, INTARRAY);
+    /* push(&stack, "z", 0, NULL, 0, &test, FUNCTION); */
+
     // Affichage de la pile pour déboguer
     printf("Pile de symboles :\n");
     printStack(&stack);
-    
-    // Recherche de symboles dans la pile
-    printf("x = %d\n", *lookup(&stack, "x"));
-    printf("y[0] = %d\n", lookup(&stack, "y")[0]);
-    printf("y[1] = %d\n", lookup(&stack, "y")[1]);
-    printf("y[2] = %d\n", lookup(&stack, "y")[2]);
-    printf("z[0] = %d\n", lookup(&stack, "z")[0]);
-    printf("z[1] = %d\n", lookup(&stack, "z")[1]);
-    printf("z[2] = %d\n", lookup(&stack, "z")[2]);
+
+    // Test de getSymbolType()
+    Symbol* sym_x = lookup(&stack, "x");
+    Symbol* sym_y = lookup(&stack, "y");
+    /* Symbol* sym_z = lookup(&stack, "z"); */
+    printf("Type de symbole x : %d\n", getTypeByName(&stack, "x")); // doit envoyer 0
+	printf("Type de symbole y : %d\n", getTypeByName(&stack, "y")); // doit envoyer 1
+	/* printf("Type de symbole z : %d\n", getTypeByName(&stack, "z")); */
+
+
+	/* printf("y[0] de base = %d\n", lookup(&stack, "y")[0]);
+	// Test de assign_array() on a soucis car il dit que cest pas un tab a mon avis
+	// vu que l'enum envoie 0,1, 2 selon les types faut voir si c pas ca le soucis
+	assign_array(&stack, "y", 0, 4);
+	printf("y[0] après assignation = %d\n", lookup(&stack, "y")[0]); */
+
 
     // Dépilement des symboles de la pile
     Symbol symbol1 = pop(&stack);
-    printf("Symbole depile : %s\n", symbol1.name);
     Symbol symbol2 = pop(&stack);
-    printf("Symbole depile : %s\n", symbol2.name);
-    Symbol symbol3 = pop(&stack);
-    printf("Symbole depile : %s\n", symbol3.name);
-    
+    printf("Symboles depilés : %s, %s\n", symbol1.name, symbol2.name);
+
     // Destruction de la pile
     freeStack(&stack);
 }
@@ -237,3 +256,66 @@ int main(void) {
 	test();
 	endFile();
 }
+
+
+
+
+
+/*
+c ma save de teste touche pas 
+void test() {
+    SymbolStack stack;
+    initStack(&stack);
+    int a = 5;
+    int b[] = {1, 2, 3};
+    int c[] = {4, 5, 6};
+    int size_b = sizeof(b)/sizeof(b[0]);
+	int size_c = sizeof(c)/sizeof(c[0]);
+
+	// Ajout de symboles à la pile
+	push(&stack, "x", a, NULL, 0, NULL, INTEGER);
+	push(&stack, "y", 0, b, size_b, NULL, INTARRAY);
+	push(&stack, "z", 0, c, size_c, NULL, INTARRAY);
+	// on va teste de faire un changement de valeur de t 
+	push(&stack, "t", 2, NULL, 0, NULL, INTEGER);
+    // Affichage de la pile pour déboguer
+    printf("Pile de symboles :\n");
+    printStack(&stack);
+    
+    // Recherche de symboles dans la pile
+	printf("Taille de b : %d\n", size_b);
+
+    printf("x = %d\n", *lookup(&stack, "x"));
+    printf("y[0] = %d\n", lookup(&stack, "y")[0]);
+	// Modification de la valeur de y[1] à 10
+    int* ptr_y1 = assign_array(&stack, "y", 1, 10);
+    if (ptr_y1 != NULL) {
+        printf("Nouvelle valeur de y[1] : %d\n", *ptr_y1);
+    }
+    printf("init z[0] = %d\n", lookup(&stack, "z")[0]);
+	//on regarde la valeur de t
+	printf("valeur initial de t = %d\n", *lookup(&stack, "t"));
+	int new_t = 10;
+	// avant de donner la nouvelle valeur de t on doit liberer l'ancienne valeur
+	// on doit verif si le param est bien une vrai var int car meme si 
+	// on met une char quand on appelle la fonction/
+	// le code va convertir la valeur de la var char en int
+	// a voir comment faire 
+	//on change la valeur de t
+	int* t = assign(&stack, "t", new_t);
+	printf("new valeur de t = %d\n", *t);
+
+    // Dépilement des symboles de la pile
+    Symbol symbol1 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol1.name);
+    Symbol symbol2 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol2.name);
+    Symbol symbol3 = pop(&stack);
+    printf("Symbole depile : %s\n", symbol3.name);
+	Symbol symbol4 = pop(&stack);
+	printf("Symbole depile : %s\n", symbol4.name);
+    
+    // Destruction de la pile
+    freeStack(&stack);
+}
+*/

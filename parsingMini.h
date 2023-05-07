@@ -55,7 +55,7 @@ typedef enum {
 } SymbolType;
 
 typedef struct Symbol {
-    char name[2000];
+    char name[20];
     SymbolType type;
     union {
         int value;
@@ -74,7 +74,11 @@ typedef struct SymbolStack {
 void initStack(SymbolStack* stack);
 void push(SymbolStack* stack, char* name, int value, int* array, int size, void* function, SymbolType type);
 int* lookup(SymbolStack* stack, char* name);
+SymbolType getTypeByName(SymbolStack* stack, const char* name);
 Symbol pop(SymbolStack* stack);
+// Affecter une expression à une variable
+int* assign(SymbolStack* stack, char* name, int value);
+int* assign_array(SymbolStack* stack, char* name, int index, int value);
 void freeStack(SymbolStack* stack);
 #endif /* SYMBOL_H */
 

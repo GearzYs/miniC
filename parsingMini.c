@@ -115,6 +115,7 @@ void push(SymbolStack* stack, char* name, int value, int* array, int size, void*
     } else if (type == INTARRAY) {
         symbol->data.array = array;
         symbol->size = size; // ajout de la taille du tableau
+        printf("type du tableau %s: %d\n", name, type);
         printf("Ajout de %s de type INT_ARRAY avec le tableau {", name);
         for (int i = 0; i < size; i++) { // modification de la boucle pour parcourir le tableau en utilisant la taille
             printf("%d", array[i]);
@@ -155,7 +156,23 @@ int* lookup(SymbolStack* stack, char* name) {
     return NULL;
 }
 
-
+// check type of symbol
+SymbolType getTypeByName(SymbolStack* stack, const char* name) {
+    Symbol* current = stack->top;
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            if (current->type == INTEGER) {
+                return INTEGER;
+            } else if (current->type == INTARRAY) {
+                return INTARRAY;
+            } else if (current->type == FUNCTION) {
+                return FUNCTION;
+            }
+        }
+        current = current->next;
+    }
+    return -1; // symbole non trouvé
+}
 
 
 // Dépiler un symbole de la pile
@@ -168,6 +185,45 @@ Symbol pop(SymbolStack* stack) {
     stack->top = stack->top->next;
     return symbol;
 }
+
+// Affecter une expression à une variable
+int* assign(SymbolStack* stack, char* name, int value) {
+    int* var = lookup(stack, name); // recherche du symbole dans la pile
+    if (var == NULL) {
+        printf("Erreur : %s non defini\n", name);
+        return NULL;
+    }
+    if (*var == INTARRAY) {
+        printf("Erreur : %s est un tableau, vous ne pouvez pas lui affecter une valeur entière\n", name);
+        return NULL;
+    }
+    *var = value; // affectation de la valeur à la variable
+    return var;
+}
+
+// Affecter une valeur à un élément d'un tableau
+int* assign_array(SymbolStack* stack, char* name, int index, int value) {
+    Symbol* symbol = lookup(stack, name);
+    if (symbol == NULL) {
+        printf("Erreur : %s non defini\n", name);
+        return NULL;
+    }
+    if (symbol->type != INTARRAY) {
+        printf("Erreur : %s n'est pas un tableau\n", name);
+        return NULL;
+    }
+    if (symbol->data.array == NULL) {
+        printf("Erreur : %s n'a pas ete alloue en tant que tableau\n", name);
+        return NULL;
+    }
+    if (index < 0 || index >= symbol->size) {
+        printf("Erreur : index %d en dehors des limites du tableau %s\n", index, name);
+        return NULL;
+    }
+    symbol->data.array[index] = value;
+    return &(symbol->data.array[index]);
+}
+
 
 // Libérer la mémoire utilisée par la pile de symboles
 void freeStack(SymbolStack* stack) {
