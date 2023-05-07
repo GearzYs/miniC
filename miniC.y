@@ -30,54 +30,67 @@ void yyerror (char *s);
 %start programme
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
-%type <id> binary_rel binary_comp binary_op type expression variable affectation condition parm appel bloc saut selection iteration liste_declarateurs declarateur instruction declaration liste_expressions liste_instructions liste_parms fonction liste_fonctions liste_declarations programme
-
+%type <id> binary_rel binary_comp binary_op programme
+%type <noeud> condition selection saut iteration instruction bloc appel liste_instructions affectation expression liste_declarations fonction liste_fonctions declaration liste_declarateurs declarateur liste_expressions type variable liste_parms parm
 %%
 
 programme	:	
-		liste_declarations liste_fonctions  {}
+		liste_declarations liste_fonctions  {afficherArbre($1);}
 ;
 liste_declarations	:	
-		liste_declarations declaration  {$$=$2;}
-	|				{$$=" ";}
+		liste_declarations declaration  {$$=creerNoeud("LISTE_DECLARATIONS",1);
+											$$ = appendChild1($$,$2);}
+	|				{$$= creerNoeud("LISTE_DECLARATIONS",0);}
 ;
 liste_fonctions	:	
-		liste_fonctions fonction      {$$=$1;} 
-|               fonction			{$$=$1;}
+		liste_fonctions fonction      {$$= creerNoeud("LISTE_FONCTIONS",0);
+										$$ = appendChild2($$,$1,$2);} 
+|               fonction			{$$= creerNoeud("LISTE_FONCTIONS",0);
+										$$ = appendChild1($$,$1);}
 ;
 declaration	:	
-		type liste_declarateurs ';' {$$ = $2;}
+		type liste_declarateurs ';' {$$= creerNoeud("DECLARATION",1);
+										$$ = appendChild1($$,$2);}
 ;
 liste_declarateurs	:	
-		liste_declarateurs ',' declarateur {$$=$1;}
-	|	declarateur  {$$ = $1; }
+		liste_declarateurs ',' declarateur {$$= creerNoeud("LISTE_DECLARATEURS",0);
+											$$ = appendChild2($$,$1,$3);}
+	|	declarateur  {$$ = creerNoeud("LISTE_DECLARATEURS",0);
+					$$ = appendChild1($$,$1);}
 ;
 declarateur	:	
-		IDENTIFICATEUR   { $$ = $1;}
-	|	declarateur '[' CONSTANTE ']'  {$$="0";}  
+		IDENTIFICATEUR   { $$ = creerNoeud($1,0);}
+	|	declarateur '[' CONSTANTE ']'  {$$= creerNoeud("[]",2);
+										noeud* constante = creerNoeud($3,0);
+										$$ = appendChild1($$,constante);}  
 ;
 fonction	:	
-		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {$$=$1;}
-	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {$$=EXTERN;}
+		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {$$= creerNoeud($2,3);
+																								$$->type = FONCTION;
+																								$$ = appendChild3($$,$1,$4,$7);
+																								$$ = appendChild1($$,$8);}
+	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {$$= creerNoeud("EXTERN",1);
+															$$ = appendChild1($$,$2);}
 ;
 type	:	
-		VOID {$$ = "void";}
-	|	INT {$$ = "int";}
+		VOID {$$ = creerNoeud("void",0);}
+	|	INT {$$ = creerNoeud("int",0);}
 ;
 
 liste_parms	:	
-		liste_parms ',' parm {$$=$3;}
-	|	parm {$$=$1;}
-	|	{$$=" ";}
+		liste_parms ',' parm {$$= creerNoeud("LISTE_PARMS",2);
+								$$ = appendChild2($$,$1,$3);}
+	|	parm {$$= $1;}
+	|	{$$= creerNoeud("PARAM VIDE",0);}
 ;
 
 parm	:	 
-		INT IDENTIFICATEUR  {$$ = $2;}
+		INT IDENTIFICATEUR  {$$ = creerNoeud($2,0);}
 ;
 
 liste_instructions :	
-		liste_instructions instruction {$$=$2;}
-	|				{$$=" ";}
+		liste_instructions instruction {$$=$1;afficherArbre($2);}
+	|				{$$= creerNoeud("LISTE_INSTRUCTIONS",0);}
 ;
 instruction	:	
 		iteration {$$=$1;}
@@ -88,63 +101,80 @@ instruction	:
 	|	appel {$$=$1;}
 ;
 iteration	:	
-		FOR '(' affectation ';' condition ';' affectation ')' instruction 	{$$=FOR;}
-	|	WHILE '(' condition ')' instruction {$$= WHILE;}
+		FOR '(' affectation ';' condition ';' affectation ')' instruction 	{$$= creerNoeud("for",4);
+																			$$ = appendChild4($$,$3,$5,$7,$9);}
+	|	WHILE '(' condition ')' instruction {$$= creerNoeud("while",2);
+											$$ = appendChild2($$,$3,$5);}
 	|   error '\n' {yyerror("reenter last");
                         yyerrok; };
 ;
 selection	:	
-		IF '(' condition ')' instruction %prec THEN {$$=IF;}
-	|	IF '(' condition ')' instruction ELSE instruction {$$=ELSE;}
-	|	SWITCH '(' expression ')' instruction {$$=SWITCH;}
-	|	CASE CONSTANTE ':' instruction {$$=CASE;}
-	|	DEFAULT ':' instruction {$$=DEFAULT;}
+		IF '(' condition ')' instruction %prec THEN {$$= creerNoeud("if",2);
+													$$ = appendChild2($$,$3,$5);}
+	|	IF '(' condition ')' instruction ELSE instruction {$$= creerNoeud("if",3);
+															$$ = appendChild3($$,$3,$5,$7);}
+	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("switch",2);
+												$$ = appendChild2($$,$3,$5);}
+	|	CASE CONSTANTE ':' instruction {$$= creerNoeud("case",2);
+										noeud* constante = creerNoeud($2,0);
+										$$ = appendChild2($$,constante,$4);}
+	|	DEFAULT ':' instruction {$$= creerNoeud("default",1);
+								$$ = appendChild1($$,$3);}
 ;
 saut	:	
-		BREAK ';' {$$=BREAK;}
-	|	RETURN ';' {$$=RETURN;}
-	|	RETURN expression ';' {$$=RETURN;}
+		BREAK ';' {$$= creerNoeud("break",0); }
+	|	RETURN ';' {$$= creerNoeud("return",0);}
+	|	RETURN expression ';' {$$= creerNoeud("return",1);
+							$$ = appendChild1($$,$2);}
 ;
 affectation	:	 
-		variable '=' expression   {$$ = $3;}
+		variable '=' expression   {$$ = creerNoeud(":=",2);
+									$$ = appendChild2($$,$1,$3);}
 ;
 bloc	:	
-		'{' liste_declarations liste_instructions '}' {$$="0";}
+		'{' liste_declarations liste_instructions '}' {$$= creerNoeud("BLOC",2);
+														$$ = appendChild2($$,$2,$3);}
 ;
 appel	:	
-		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$=$1;}
+		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$= creerNoeud($1,0);
+														$$->type = APPELFONCTION;}
 ;
 variable	:	
-		IDENTIFICATEUR  {$$ = $1;}
-	|	variable '[' expression ']' {$$ ="0";/* $$ = $1[$3] ;*/}
+		IDENTIFICATEUR  {$$ = creerNoeud($1,0);}
+	|	variable '[' expression ']' {$$ = creerNoeud("[]",2);
+									$$ = appendChild1($$,$3);}
 ;
 expression	:	
 		'(' expression ')'	{$$ = $2;}                      
-	|	expression binary_op expression %prec OP	{$$="0";}
-	|	MOINS expression	{$$ = $2;}                                   
-	|	CONSTANTE       {$$=$1;}                                                  							
+	|	expression binary_op expression %prec OP	{$$= creerNoeud($2,2);
+													$$ = appendChild2($$,$1,$3);}
+	|	MOINS expression	{$$ = creerNoeud("MOINS",1);
+							$$ = appendChild1($$,$2);}                                   
+	|	CONSTANTE       {$$= creerNoeud($1,0);}                                                  							
 	|	variable	 {$$ = $1;}                                 
-	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = $1;}                                  
+	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = creerNoeud($1,0);
+													$$->type = APPELFONCTION;
+													$$ = appendChild1($$,$3);}                                  
 ;
 
 liste_expressions	:	
-		liste_expressions ',' expression {$$=$1;}
-	|	expression {$$=$1;}
-	|   {$$=" ";}
+		liste_expressions ',' expression {$$= creerNoeud("LISTE_EXPRESSIONS",0);
+											$$ = appendChild2($$,$1,$3);}
+	|	expression {$$= $1;}
+	|   {$$= creerNoeud(" ",0);}
 ;
 
 condition	:	
-		NOT '(' condition ')' {$$ = $3;}
-	|	condition binary_rel condition %prec REL {$$="0";}
+		NOT '(' condition ')' {$$ = creerNoeud("NOT",1);
+								$$ = appendChild1($$,$3);}
+	|	condition binary_rel condition %prec REL {
+										$$ = creerNoeud($2,2);
+										$$ = appendChild2($$,$1,$3);
+	}
 	|	'(' condition ')' {$$ = $2;}
-	|	expression binary_comp expression {$$ = $1;
-	noeud *n = creerNoeud("IF",1);
-	noeud *n1 = creerNoeud($2,2);
-	n1->fils[0] = creerNoeud($1,0);
-	n1->fils[1] = creerNoeud($3,0);
-	n->fils[0] = n1;
-	afficherArbre(n);
-	generateDotFile(n);
+	|	expression binary_comp expression {
+										$$ = creerNoeud($2,2);
+										$$ = appendChild2($$,$1,$3);
 	}
 ;
 binary_op	:	

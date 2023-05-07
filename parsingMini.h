@@ -14,6 +14,18 @@ typedef struct noeud {
 // Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
 noeud* creerNoeud(char* val, int nb_fils);
 
+// Ajout d'un fils à un noeud
+noeud* appendChild1(noeud* n, noeud* child) ;
+
+// Ajout 2 fils à un noeud
+noeud* appendChild2(noeud* n, noeud* child1, noeud* child2);
+
+// Ajout 3 fils à un noeud
+noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3);
+
+// Ajout 4 fils à un noeud
+noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud* child4);
+
 // Affichage récursif de l'arbre à partir d'un noeud donné
 void afficherArbre(noeud* n);
 

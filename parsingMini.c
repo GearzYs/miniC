@@ -13,6 +13,32 @@ noeud* creerNoeud(char* val, int nb_fils) {
     return n;
 }
 
+noeud* appendChild1(noeud* n, noeud* child) {
+    n->fils[0] = child;
+    return n;
+}
+
+noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
+    n->fils[0] = child1;
+    n->fils[1] = child2;
+    return n;
+}
+
+noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3) {
+    n->fils[0] = child1;
+    n->fils[1] = child2;
+    n->fils[2] = child3;
+    return n;
+}
+
+noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud* child4) {
+    n->fils[0] = child1;
+    n->fils[1] = child2;
+    n->fils[2] = child3;
+    n->fils[3] = child4;
+    return n;
+}
+
 void afficherArbre(noeud* n) {
     if (n == NULL) {
         return;   // Cas de base : le noeud est vide
@@ -95,3 +121,4 @@ void clearFile(){
   FILE *f = fopen("arbre.dot", "w");
   fclose(f);
 }
+
