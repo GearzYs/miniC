@@ -14,6 +14,8 @@ void yyerror (char *s);
 	int val;
 	char* id;
 	noeud *noeud;
+	liste_chaine_noeud* liste;
+	NoeudType* typeu;
 }
  
 
@@ -32,38 +34,43 @@ void yyerror (char *s);
 %start programme
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
-%type <id> binary_rel binary_comp binary_op type expression variable affectation condition parm appel bloc saut selection iteration liste_declarateurs declarateur instruction declaration liste_expressions liste_instructions liste_parms fonction liste_fonctions liste_declarations programme
-
+%type <id> binary_rel binary_comp binary_op expression variable affectation condition parm appel bloc saut selection iteration  instruction  liste_expressions liste_instructions liste_parms fonction  programme
+%type <liste> liste_declarateurs liste_fonctions liste_declarations
+%type <typeu> type  
+%type <noeud> declaration declarateur 
+// regarder type liste plus tard
+//$$= c mieux quand c larbre du dot et pas l'arbre du sémantique
+// arbre khalil liste fonctions et moi liste declarations
 %%
 
 programme	:	
-		liste_declarations liste_fonctions  {}
+		liste_declarations liste_fonctions  {$$= creerNoeud("coucou");addAllChild($$,$1);}
 ;
 liste_declarations	:	
-		liste_declarations declaration  {$$=$2;}
-	|				{$$=" ";}
+		liste_declarations declaration  {$$= addListeChaineNoeud($1,$2);}
+	|				{$$= creerListeChaineNoeud(creerNoeud("coucou"));}
 ;
 liste_fonctions	:	
 		liste_fonctions fonction      {$$=$1;} 
 |               fonction			{$$=$1;}
 ;
 declaration	:	
-		type liste_declarateurs ';' {$$ = $2;}
+		type liste_declarateurs ';' {$$ = creerNoeud("coucou"); $$=addAllChild($$,$2); $$=addTypeNoeud($$,$1);}
 ;
 liste_declarateurs	:	
-		liste_declarateurs ',' declarateur {$$=$1;}
-	|	declarateur  {$$ = $1; }
+		liste_declarateurs ',' declarateur {$$= addListeChaineNoeud($1,$3);};
+	|	declarateur  {$$ = creerListeChaineNoeud($1); }
 ;
 declarateur	:	
-		IDENTIFICATEUR   { $$ = $1;}
-	|	declarateur '[' CONSTANTE ']'  {$$="0";}  
+		IDENTIFICATEUR   { $$ = creerNoeud($1);}
+	|	declarateur '[' CONSTANTE ']'  {$$= addSize($1,$3);}
 ;
 fonction	:	
 		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {$$=$1;}
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {$$=EXTERN;}
 ;
 type	:	
-		VOID {$$ = "void";}
+		VOID {$$ = "void";} // voir comment faire avec syntaxe en C pour renvoyer le type d'une enum
 	|	INT {$$ = "int";}
 ;
 
@@ -139,15 +146,7 @@ condition	:
 		NOT '(' condition ')' {$$ = $3;}
 	|	condition binary_rel condition %prec REL {$$="0";}
 	|	'(' condition ')' {$$ = $2;}
-	|	expression binary_comp expression {$$ = $1;
-	noeud *n = creerNoeud("IF",1);
-	noeud *n1 = creerNoeud($2,2);
-	n1->fils[0] = creerNoeud($1,0);
-	n1->fils[1] = creerNoeud($3,0);
-	n->fils[0] = n1;
-	afficherArbre(n);
-	generateDotFile(n);
-	}
+	|	expression binary_comp expression {$$="0";}
 ;
 binary_op	:	
 		PLUS  {$$ = "+"; }
@@ -164,7 +163,7 @@ binary_rel	:
 	|	LOR	{$$ = "||"; }
 ;
 binary_comp	:	
-		LT	{$$ = "<"; }
+		LT	{printf("marg" );$$ = "<"; }
 	|	GT	{$$ = ">"; }
 	|	GEQ	{$$ = ">="; }
 	|	LEQ	{$$ = "<="; }
@@ -176,68 +175,42 @@ binary_comp	:
 
 extern int yylineno;
 
-void printStack(SymbolStack* stack) {
-    printf("-----Stack-----\n");
-    Symbol* current = stack->top;
-    while (current != NULL) {
-        printf("%s : ", current->name);
-        if (current->type == INTEGER) {
-            printf("%d\n", current->data.value);
-        } else if (current->type == INTARRAY) {
-            printf("{");
-            for (int i = 0; i < current->size; i++) {
-                printf("%d", current->data.array[i]);
-                if (i < current->size - 1) {
-                    printf(", ");
-                }
-            }
-            printf("}\n");
-        } else if (current->type == FUNCTION) {
-            printf("FUNCTION\n");
-        } else {
-            printf("UNKNOWN TYPE\n");
-        }
-        current = current->next;
+int test() {
+    // Création de l'AST
+    noeud* root = creerNoeud("Root");
+    printf("type root : %d\n", root->typeu); // 0 -> NULLTYPE
+    // Ajout de nœuds enfants
+    noeud* child1 = creerNoeud("Child1");
+    noeud* child2 = creerNoeud("Child2");
+    printf("Nombre d'enfants de root : %d\n", root->nb_fils);
+
+	// Création de la liste chaînée de nœuds
+	liste_chaine_noeud* liste = creerListeChaineNoeud(child1);
+    liste = addListeChaineNoeud(liste, child2);
+    
+    // Ajout de tous les nœuds de la liste à un nœud parent
+    root = addAllChild(root, liste);
+	printf("Nombre d'enfants de root : %d\n", root->nb_fils);
+
+    // Affichage de l'AST
+    printf("Affichage de l'AST :\n");
+    afficherNoeud(root);
+    printf("\n");
+    
+    // Recherche d'un nœud
+    char* valeurRecherchee = "Child1";
+    noeud* resultatRecherche = rechercherNoeud(root, valeurRecherchee);
+	printf("res : %s\n", resultatRecherche->val);
+    if (resultatRecherche->val != NULL) {
+        printf("Noeud avec la valeur \"%s\" trouvé.\n", valeurRecherchee);
+    } else {
+        printf("Noeud avec la valeur \"%s\" non trouvé.\n", valeurRecherchee);
     }
-    printf("---------------\n");
-}
-
-void test() {
-    SymbolStack stack;
-    initStack(&stack);
-
-    // Ajout de symboles à la pile
-    push(&stack, "x", 5, NULL, 0, NULL, INTEGER);
-    push(&stack, "y", 0, (int[]){1,2,3}, 3, NULL, INTARRAY);
-    /* push(&stack, "z", 0, NULL, 0, &test, FUNCTION); */
-
-    // Affichage de la pile pour déboguer
-    printf("Pile de symboles :\n");
-    printStack(&stack);
-
-    // Test de getSymbolType()
-    Symbol* sym_x = lookup(&stack, "x");
-    Symbol* sym_y = lookup(&stack, "y");
-    /* Symbol* sym_z = lookup(&stack, "z"); */
-    printf("Type de symbole x : %d\n", getTypeByName(&stack, "x")); // doit envoyer 0
-	printf("Type de symbole y : %d\n", getTypeByName(&stack, "y")); // doit envoyer 1
-	/* printf("Type de symbole z : %d\n", getTypeByName(&stack, "z")); */
-
-
-	/* printf("y[0] de base = %d\n", lookup(&stack, "y")[0]);
-	// Test de assign_array() on a soucis car il dit que cest pas un tab a mon avis
-	// vu que l'enum envoie 0,1, 2 selon les types faut voir si c pas ca le soucis
-	assign_array(&stack, "y", 0, 4);
-	printf("y[0] après assignation = %d\n", lookup(&stack, "y")[0]); */
-
-
-    // Dépilement des symboles de la pile
-    Symbol symbol1 = pop(&stack);
-    Symbol symbol2 = pop(&stack);
-    printf("Symboles depilés : %s, %s\n", symbol1.name, symbol2.name);
-
-    // Destruction de la pile
-    freeStack(&stack);
+    
+    // Libération de l'AST
+    libererNoeud(root);
+    
+    return 0;
 }
 
 
@@ -251,10 +224,8 @@ int yywrap() {
 }
 
 int main(void) {
-	clearFile();
-	startFile();
+	//while (yyparse);
 	test();
-	endFile();
 }
 
 
@@ -318,4 +289,10 @@ void test() {
     // Destruction de la pile
     freeStack(&stack);
 }
+
+
+ deux stack , une poour declarations et une pour utilisation 
+ si on ajoute une decla, on ajoute dans la stack decla et utilisation je mets une case vide
+ si on ajoute une utilisation, on ajoute dans la stack utilisation et dans la stack decla je mets une case vide
+ changer structure genre faire 2 pile différentes 
 */
