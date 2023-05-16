@@ -77,7 +77,7 @@ void nodeType(FILE* f, noeud* n, int* COMPTEUR){
     printf("APPELFONCTION\n");
   }
   else if(n->type == FONCTION){
-    printf("FONCTION\n");
+    fprintf(f, "node_%d [label=\"%s\"shape=trapezium color=blue];\n", *COMPTEUR, n->val);
   }
   else if(strcmp(n->val,"BREAK")==0){
     fprintf(f, "node_%d [label=\"%s\"shape=box];\n", *COMPTEUR, "BREAK");
@@ -87,6 +87,9 @@ void nodeType(FILE* f, noeud* n, int* COMPTEUR){
   }
   else if(strcmp(n->val,"RETURN")==0){
     fprintf(f, "node_%d [label=\"%s\"shape=trapezium color=blue];\n", *COMPTEUR, "RETURN");
+  }
+  else if(strcmp(n->val,"EXTERN")==0){
+    fprintf(f, "node_%d [label=\"%s\"shape=trapezium color=blue];\n", *COMPTEUR, "EXTERN");
   }
   else {
     fprintf(f, "node_%d [label=\"%s\"];\n", *COMPTEUR, n->val);

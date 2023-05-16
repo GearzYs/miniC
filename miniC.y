@@ -47,28 +47,31 @@ liste_fonctions	:
 |               fonction			{$$= $1;}
 ;
 declaration	:	
-		type liste_declarateurs ';' {$$= creerNoeud("DECLARATION");
-										$$ = appendChild1($$,$2);}
+		type liste_declarateurs ';' {if(strcmp($1->val,"int")==0){
+										$$ = $2 ;
+									} else{
+										yyerror("Error : Declaration of a non-handled type.");
+									}}
 ;
-liste_declarateurs	:	
-		liste_declarateurs ',' declarateur {$$= creerNoeud("LISTE_DECLARATEURS");
-											$$ = appendChild2($$,$1,$3);}
-	|	declarateur  {$$ = creerNoeud("LISTE_DECLARATEURS");
-					$$ = appendChild1($$,$1);}
+liste_declarateurs	:
+		liste_declarateurs ',' declarateur {$$= $1;}
+	|	declarateur  {$$ = $1;}
 ;
 declarateur	:	
-		IDENTIFICATEUR   { $$ = creerNoeud($1);}
-	|	declarateur '[' CONSTANTE ']'  {$$= creerNoeud("[]");
-										noeud* constante = creerNoeud($3);
-										$$ = appendChild1($$,constante);}  
+		IDENTIFICATEUR   {}
+	|	declarateur '[' CONSTANTE ']'  {}  
 ;
 fonction	:	
-		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' {$$= creerNoeud($2);
+		type IDENTIFICATEUR '(' liste_parms ')' bloc {char* funcname = (char * ) malloc(20 * sizeof(char));
+																								sprintf(funcname,"%s, %s",$2,$1->val);
+																								$$= creerNoeud(funcname);
 																								$$->type = FONCTION;
-																								$$ = appendChild3($$,$1,$4,$7);
-																								$$ = appendChild1($$,$8);}
-	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {$$= creerNoeud("EXTERN");
-															$$ = appendChild1($$,$2);}
+																								$$ = appendChild2($$,$4,$6);}
+	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {char* funcname = (char * ) malloc(20 * sizeof(char));
+																								sprintf(funcname,"EXTERN %s, %s",$3,$2->val);
+																								$$= creerNoeud(funcname);
+																								$$->type = FONCTION;
+																								$$ = appendChild1($$,$5);}
 ;
 type	:	
 		VOID {$$ = creerNoeud("void");}
@@ -76,19 +79,19 @@ type	:
 ;
 
 liste_parms	:	
-		liste_parms ',' parm {$$= creerNoeud("LISTE_PARMS");
-								$$ = appendChild2($$,$1,$3);}
+		liste_parms ',' parm {$$=$1; appendChild1($$,$3);}
 	|	parm {$$= $1;}
-	|	{$$= creerNoeud("PARAM VIDE");}
+	|	{$$= creerNoeud("...");}
 ;
 
 parm	:	 
-		INT IDENTIFICATEUR  {$$ = creerNoeud($2);}
+		INT IDENTIFICATEUR  {$$ = creerNoeud("INT");
+							$$ = appendChild1($$,creerNoeud($2));}
 ;
 
 liste_instructions :	
 		liste_instructions instruction {$$=$1;}
-	|				{$$= creerNoeud("LISTE_INSTRUCTIONS");}
+	|				{$$=creerNoeud("...");}
 ;
 instruction	:	
 		iteration {$$=$1;}
@@ -101,7 +104,7 @@ instruction	:
 iteration	:	
 		FOR '(' affectation ';' condition ';' affectation ')' instruction 	{$$= creerNoeud("FOR");
 																			$$ = appendChild4($$,$3,$5,$7,$9);}
-	|	WHILE '(' condition ')' instruction {$$= creerNoeud("while");
+	|	WHILE '(' condition ')' instruction {$$= creerNoeud("WHILE");
 											$$ = appendChild2($$,$3,$5);}
 	|   error '\n' {yyerror("reenter last");
                         yyerrok; };
@@ -134,12 +137,13 @@ affectation	:
 									$$ = appendChild2($$,$1,$3);}
 ;
 bloc	:	
-		'{' liste_declarations liste_instructions '}' {$$= creerNoeud("BLOC");
-														$$ = appendChild2($$,$2,$3);}
+		'{' liste_declarations liste_instructions '}' {if ($3->nb_fils <= 1) {$$=$3;} else {$$= creerNoeud("BLOC");
+														$$ = appendChild2($$,$3,$2);}}
 ;
 appel	:	
 		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$= creerNoeud($1);
-														$$->type = APPELFONCTION;}
+														$$->type = APPELFONCTION;
+														$$ = appendChild1($$,$3);}
 ;
 variable	:	
 		IDENTIFICATEUR  {$$ = creerNoeud($1);}
@@ -150,7 +154,7 @@ expression	:
 		'(' expression ')'	{$$ = $2;}                      
 	|	expression binary_op expression %prec OP	{$$= creerNoeud($2);
 													$$ = appendChild2($$,$1,$3);}
-	|	MOINS expression	{$$ = creerNoeud("MOINS");
+	|	MOINS expression	{$$ = creerNoeud("-");
 							$$ = appendChild1($$,$2);}                                   
 	|	CONSTANTE       {$$= creerNoeud($1);}                                                  							
 	|	variable	 {$$ = $1;}                                 
@@ -160,10 +164,10 @@ expression	:
 ;
 
 liste_expressions	:	
-		liste_expressions ',' expression {$$= creerNoeud("LISTE_EXPRESSIONS");
-											$$ = appendChild2($$,$1,$3);}
+		liste_expressions ',' expression {$$= $1;
+											$$ = appendChild1($$,$3);}
 	|	expression {$$= $1;}
-	|   {$$= creerNoeud(" ");}
+	|   {$$= creerNoeud("...");}
 ;
 
 condition	:	
