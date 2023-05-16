@@ -8,11 +8,10 @@ typedef struct noeud {
     struct noeud **fils;   // Tableau de pointeurs vers les fils
     int nb_fils;           // Nombre de fils
     typeNoeud type;        // Type du noeud
-
 } noeud;
 
 // Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
-noeud* creerNoeud(char* val, int nb_fils);
+noeud* creerNoeud(char* val);
 
 // Ajout d'un fils à un noeud
 noeud* appendChild1(noeud* n, noeud* child) ;
@@ -39,12 +38,6 @@ void generateDotFile(noeud* n);
 
 //Permet de changer la forme d'un noeud en fonction de son type
 void nodeType(FILE* f, noeud* n, int* COMPTEUR);
-
-//Commence le fichier .dot
-void startFile();
-
-//Termine le fichier .dot
-void endFile();
 
 //Vide le fichier .dot
 void clearFile();

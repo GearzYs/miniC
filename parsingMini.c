@@ -5,37 +5,43 @@
 
 int COMPTEUR = 0;
 
-noeud* creerNoeud(char* val, int nb_fils) {
+noeud* creerNoeud(char* val) {
     noeud* n = malloc(sizeof(noeud));
     n->val = val;
-    n->nb_fils = nb_fils;
-    n->fils = calloc(nb_fils, sizeof(noeud*));
     return n;
 }
 
 noeud* appendChild1(noeud* n, noeud* child) {
-    n->fils[0] = child;
+    n->nb_fils++;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 1] = child;
     return n;
 }
 
 noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
-    n->fils[0] = child1;
-    n->fils[1] = child2;
+    n->nb_fils += 2;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 2] = child1;
+    n->fils[n->nb_fils - 1] = child2;
     return n;
 }
 
 noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3) {
-    n->fils[0] = child1;
-    n->fils[1] = child2;
-    n->fils[2] = child3;
+    n->nb_fils += 3;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 3] = child1;
+    n->fils[n->nb_fils - 2] = child2;
+    n->fils[n->nb_fils - 1] = child3;
     return n;
 }
 
 noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud* child4) {
-    n->fils[0] = child1;
-    n->fils[1] = child2;
-    n->fils[2] = child3;
-    n->fils[3] = child4;
+    n->nb_fils += 4;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 4] = child1;
+    n->fils[n->nb_fils - 3] = child2;
+    n->fils[n->nb_fils - 2] = child3;
+    n->fils[n->nb_fils - 1] = child4;
     return n;
 }
 
@@ -54,7 +60,7 @@ void afficherArbre(noeud* n) {
     printf("(");
     int i;
     for (i = 0; i < n->nb_fils; i++) {
-        if (n->fils[i] != NULL) {
+        if (n->nb_fils > 0) {
             afficherArbre(n->fils[i]);
             if (i < n->nb_fils - 1) {
                 printf(",");
@@ -101,24 +107,12 @@ void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp) {
 void generateDotFile(noeud* n){
   FILE* f;
   f = fopen("arbre.dot", "a");
-  arbreToDot(n, &COMPTEUR, f);
-  fclose(f);
-}
-
-void startFile(){
-  FILE *f = fopen("arbre.dot", "a");
   fprintf(f, "digraph G {\n");
-  fclose(f);
-}
-
-void endFile(){
-  FILE *f = fopen("arbre.dot", "a");
-  fprintf(f, "}");
-  fclose(f);
-}
+  printf("Génération du fichier dot\n");
+  arbreToDot(n, &COMPTEUR, f);
+  fprintf(f, "}");}
 
 void clearFile(){
   FILE *f = fopen("arbre.dot", "w");
   fclose(f);
 }
-
