@@ -1395,7 +1395,7 @@ case 18:
 break;
 case 19:
 #line 93 "miniC.y"
-	{yyval.noeud=yystack.l_mark[-1].noeud;}
+	{yyval.noeud=yystack.l_mark[-1].noeud; yyval.noeud = appendChild1(yyval.noeud,yystack.l_mark[0].noeud);}
 #line 1400 "y.tab.c"
 break;
 case 20:

@@ -90,7 +90,7 @@ parm	:
 ;
 
 liste_instructions :	
-		liste_instructions instruction {$$=$1;}
+		liste_instructions instruction {$$=$1; $$ = appendChild1($$,$2);}
 	|				{$$=creerNoeud("...");}
 ;
 instruction	:	
