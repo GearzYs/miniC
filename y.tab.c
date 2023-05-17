@@ -1306,12 +1306,12 @@ case 3:
 break;
 case 4:
 #line 46 "miniC.y"
-	{yyval.fonctions = addFonction(yystack.l_mark[-1].fonctions,yystack.l_mark[0].noeud);}
+	{yyval.fonctions = addFonction(yystack.l_mark[-1].fonctions,yystack.l_mark[0].noeud);afficherArbre(yystack.l_mark[0].noeud);}
 #line 1311 "y.tab.c"
 break;
 case 5:
 #line 47 "miniC.y"
-	{yyval.fonctions= creerFonction(yystack.l_mark[0].noeud);}
+	{yyval.fonctions= creerFonction(yystack.l_mark[0].noeud);afficherArbre(yystack.l_mark[0].noeud);}
 #line 1316 "y.tab.c"
 break;
 case 6:

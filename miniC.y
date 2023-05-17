@@ -43,8 +43,8 @@ liste_declarations	:
 	|				{}
 ;
 liste_fonctions	:	
-		liste_fonctions fonction      {$$ = addFonction($1,$2);} 
-|               fonction			{$$= creerFonction($1);}
+		liste_fonctions fonction      {$$ = addFonction($1,$2);afficherArbre($2);} 
+|               fonction			{$$= creerFonction($1);afficherArbre($1);}
 ;
 declaration	:	
 		type liste_declarateurs ';' {if(strcmp($1->val,"int")==0){
