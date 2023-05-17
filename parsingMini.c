@@ -157,12 +157,9 @@ void afficherNoeud(noeud* n) {
 }
 
 
+
 noeud* rechercherNoeud(noeud* n, char* valeur) {
-    printf("recherche dans %s\n", n->val);
-    printf("nb fils : %d\n", n->nb_fils);
-    printf("Recherche de %s\n", valeur);
     if (n == NULL) {
-        printf("Pointeur n est NULL. Erreur de segmentation.\n");
         return NULL;
     }
     
@@ -171,16 +168,17 @@ noeud* rechercherNoeud(noeud* n, char* valeur) {
     }
     
     for (int i = 0; i < n->nb_fils; i++) {
-        printf("nb fils : %d\n", n->nb_fils);
-        printf("Recherche dans le fils %d\n", i);
         noeud* res = rechercherNoeud(n->fils[i], valeur);
-        printf("Resultat de la recherche : %s\n", res->val);
         if (res != NULL) {
             return res;
         }
     }
+    
     return NULL;
 }
+
+
+
 
 
 // // Initialiser la pile de symboles

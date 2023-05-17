@@ -632,7 +632,7 @@ int test() {
     printf("\n");
     
     // Recherche d'un nœud
-    char* valeurRecherchee = "Child1";
+    char* valeurRecherchee = "Child2";
     noeud* resultatRecherche = rechercherNoeud(root, valeurRecherchee);
 	printf("res : %s\n", resultatRecherche->val);
     if (resultatRecherche->val != NULL) {
