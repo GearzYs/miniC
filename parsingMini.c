@@ -72,12 +72,30 @@ void afficherArbre(noeud* n) {
     printf(")\n");
 }
 
+fonctions* addFonction(fonctions* f, noeud* n){
+  f->nb_fonctions++;
+  f->fonctions = realloc(f->fonctions, f->nb_fonctions * sizeof(noeud*));
+  f->fonctions[f->nb_fonctions - 1] = n;
+  return f;
+}
+
+fonctions* creerFonction(noeud* n){
+  fonctions* f = malloc(sizeof(fonctions));
+  f->nb_fonctions = 1;
+  f->fonctions = malloc(sizeof(noeud*));
+  f->fonctions[0] = n;
+  return f;
+}
+
 void nodeType(FILE* f, noeud* n, int* COMPTEUR){
   if(n->type == APPELFONCTION){
-    printf("APPELFONCTION\n");
+    fprintf(f, "node_%d [label=\"%s\"shape=septagon];\n", *COMPTEUR, n->val);
   }
   else if(n->type == FONCTION){
-    fprintf(f, "node_%d [label=\"%s\"shape=trapezium color=blue];\n", *COMPTEUR, n->val);
+    fprintf(f, "node_%d [label=\"%s\"shape=invtrapezium color=blue];\n", *COMPTEUR, n->val);
+  }
+  else if(n->type == ARGUMENT){
+    fprintf(f, "node_%d [label=\"%s\"shape=triangle style=dotted];\n", *COMPTEUR, n->val);
   }
   else if(strcmp(n->val,"BREAK")==0){
     fprintf(f, "node_%d [label=\"%s\"shape=box];\n", *COMPTEUR, "BREAK");
@@ -107,12 +125,15 @@ void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp) {
         arbreToDot(n->fils[i], COMPTEUR, fp);
     }
 }
-void generateDotFile(noeud* n){
+void generateDotFile(fonctions* listfunc){
   FILE* f;
   f = fopen("arbre.dot", "a");
   fprintf(f, "digraph G {\n");
   printf("Génération du fichier dot\n");
-  arbreToDot(n, &COMPTEUR, f);
+  for (int i = 0; i < listfunc->nb_fonctions; i++) {
+    afficherArbre(listfunc->fonctions[i]);
+    arbreToDot(listfunc->fonctions[i], &COMPTEUR, f);
+  }
   fprintf(f, "}");}
 
 void clearFile(){
