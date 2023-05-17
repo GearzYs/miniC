@@ -11,7 +11,7 @@ void yyerror (char *s);
 	int val;
 	char* id;
 	noeud *noeud;
-	fonctions *fonctions;
+	liste_noeud *liste_noeud;
 }
 
 
@@ -31,8 +31,8 @@ void yyerror (char *s);
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
 %type <id> binary_rel binary_comp binary_op 
-%type <noeud> condition selection saut iteration programme instruction bloc appel liste_instructions affectation expression liste_declarations fonction declaration liste_declarateurs declarateur liste_expressions type variable liste_parms parm
-%type <fonctions> liste_fonctions
+%type <noeud> condition selection saut iteration programme instruction bloc appel affectation expression liste_declarations fonction declaration liste_declarateurs declarateur liste_expressions type variable liste_parms parm
+%type <liste_noeud> liste_fonctions liste_instructions
 %%
 
 programme	:	
@@ -43,8 +43,8 @@ liste_declarations	:
 	|				{}
 ;
 liste_fonctions	:	
-		liste_fonctions fonction      {$$ = addFonction($1,$2);afficherArbre($2);} 
-|               fonction			{$$= creerFonction($1);afficherArbre($1);}
+		liste_fonctions fonction      {$$ = addNoeud($1,$2);afficherArbre($2);} 
+|      			fonction			{$$= creerListeNoeud($1);afficherArbre($1);}
 ;
 declaration	:	
 		type liste_declarateurs ';' {if(strcmp($1->val,"int")==0){
@@ -81,7 +81,7 @@ type	:
 liste_parms	:	
 		liste_parms ',' parm {$$=$1; appendChild1($$,$3);}
 	|	parm {$$= $1;}
-	|	{$$=creerNoeud(".EMPTY.");}
+	|	{}
 ;
 
 parm	:	 
@@ -90,8 +90,8 @@ parm	:
 ;
 
 liste_instructions :	
-		liste_instructions instruction {$$=$1; $$ = appendChild1($$,$2);}
-	|				{$$=creerNoeud(".EMPTY.");}
+		liste_instructions instruction {$$=addNoeud($1,$2);}
+	|	instruction				{$$=creerListeNoeud($1);}
 ;
 instruction	:	
 		iteration {$$=$1;}
@@ -115,9 +115,9 @@ selection	:
 													$$ = appendChild2($$,$3,$5);}
 	|	IF '(' condition ')' instruction ELSE instruction {$$= creerNoeud("IF");
 															$$ = appendChild3($$,$3,$5,$7);}
-	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("switch");
+	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("SWITCH");
 												$$ = appendChild2($$,$3,$5);}
-	|	CASE CONSTANTE ':' instruction {$$= creerNoeud("case");
+	|	CASE CONSTANTE ':' instruction {$$= creerNoeud("CASE");
 										noeud* constante = creerNoeud($2);
 										$$ = appendChild2($$,constante,$4);}
 	|	DEFAULT ':' instruction {$$= creerNoeud("default");
@@ -138,8 +138,12 @@ affectation	:
 									$$ = appendChild2($$,$1,$3);}
 ;
 bloc	:	
-		'{' liste_declarations liste_instructions '}' {if ($3->nb_fils <= 1) {$$=$3;} else {$$= creerNoeud("BLOC");
-														$$ = appendChild2($$,$3,$2);}}
+		'{' liste_declarations liste_instructions '}' {if ($3->nb_noeud == 0) {$$=$3->liste_noeud[0];} else {$$= creerNoeud("BLOC");
+														$$ = appendChild1($$,$2);
+														for(int i = 0; i < $3->nb_noeud; i++){
+															$$ = appendChild1($$,$3->liste_noeud[i]);
+														}
+														}}
 ;
 appel	:	
 		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$= creerNoeud($1);
@@ -209,7 +213,6 @@ binary_comp	:
 ;
 
 %%
-
 extern int yylineno;
 
 void yyerror(char *s){
