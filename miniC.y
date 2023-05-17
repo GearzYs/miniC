@@ -40,7 +40,7 @@ programme	:
 ;
 liste_declarations	:	
 		liste_declarations declaration  {}
-	|				{$$=creerNoeud("...");}
+	|				{}
 ;
 liste_fonctions	:	
 		liste_fonctions fonction      {$$ = addFonction($1,$2);} 
@@ -81,7 +81,7 @@ type	:
 liste_parms	:	
 		liste_parms ',' parm {$$=$1; appendChild1($$,$3);}
 	|	parm {$$= $1;}
-	|	{$$= creerNoeud("...");}
+	|	{$$=creerNoeud(".EMPTY.");}
 ;
 
 parm	:	 
@@ -91,7 +91,7 @@ parm	:
 
 liste_instructions :	
 		liste_instructions instruction {$$=$1; $$ = appendChild1($$,$2);}
-	|				{$$=creerNoeud("...");}
+	|				{$$=creerNoeud(".EMPTY.");}
 ;
 instruction	:	
 		iteration {$$=$1;}

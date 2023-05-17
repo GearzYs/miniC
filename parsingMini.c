@@ -109,7 +109,7 @@ void nodeType(FILE* f, noeud* n, int* COMPTEUR){
   else if(strcmp(n->val,"EXTERN")==0){
     fprintf(f, "node_%d [label=\"%s\"shape=trapezium color=blue];\n", *COMPTEUR, "EXTERN");
   }
-  else {
+  else if(strcmp(n->val,".EMPTY.")!=0){
     fprintf(f, "node_%d [label=\"%s\"];\n", *COMPTEUR, n->val);
   }
 }
@@ -121,8 +121,11 @@ void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp) {
     int noeud_courant = *COMPTEUR;
     (*COMPTEUR)++;
     for (int i = 0; i < n->nb_fils; i++) {
+            //if (n->fils[i]!=NULL && (strcmp(n->fils[i]->val, ".EMPTY.")!=0) && (strcmp(n->val, ".EMPTY.")!=0)){
         fprintf(fp, "node_%d -> node_%d;\n", noeud_courant, *COMPTEUR);
+        if (n->fils[i]!=NULL){
         arbreToDot(n->fils[i], COMPTEUR, fp);
+        }
     }
 }
 void generateDotFile(fonctions* listfunc){

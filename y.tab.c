@@ -1301,7 +1301,7 @@ case 2:
 break;
 case 3:
 #line 43 "miniC.y"
-	{yyval.noeud=creerNoeud("...");}
+	{}
 #line 1306 "y.tab.c"
 break;
 case 4:
@@ -1383,7 +1383,7 @@ case 16:
 break;
 case 17:
 #line 84 "miniC.y"
-	{yyval.noeud= creerNoeud("...");}
+	{yyval.noeud=creerNoeud(".EMPTY.");}
 #line 1388 "y.tab.c"
 break;
 case 18:
@@ -1399,7 +1399,7 @@ case 19:
 break;
 case 20:
 #line 94 "miniC.y"
-	{yyval.noeud=creerNoeud("...");}
+	{yyval.noeud=creerNoeud(".EMPTY.");}
 #line 1404 "y.tab.c"
 break;
 case 21:
