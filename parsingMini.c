@@ -8,9 +8,10 @@
 int COMPTEUR = 0;
 noeud* creerNoeud(char* val) {
     noeud* n = malloc(sizeof(noeud));
-    n->val = val;
+    n->val = strdup(val);  // Allouer une nouvelle mémoire et copier la valeur
     return n;
 }
+
 
 
 noeud* addTypeNoeud(noeud* n, char* t) {
@@ -162,12 +163,18 @@ noeud* rechercherNoeud(noeud* n, char* valeur) {
     if (n == NULL) {
         return NULL;
     }
-    
+    printf("recherche dans %s\n", n->val);
+    printf("nb fils : %d\n", n->nb_fils);
+    printf("Recherche de %s\n", valeur);
+
     if (strcmp(n->val, valeur) == 0) {
+        printf("trouvé\n");
         return n;
     }
-    
+    printf("nb fils : %d\n", n->nb_fils);
+    printf("pas trouvé\n");
     for (int i = 0; i < n->nb_fils; i++) {
+        printf("margauxx : %d\n", i);
         noeud* res = rechercherNoeud(n->fils[i], valeur);
         if (res != NULL) {
             return res;

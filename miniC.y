@@ -198,10 +198,10 @@ int test() {
     printf("\n");
     
     // Recherche d'un nœud
-    char* valeurRecherchee = "Child2";
+    char* valeurRecherchee = "Child3";
     noeud* resultatRecherche = rechercherNoeud(root, valeurRecherchee);
-	printf("res : %s\n", resultatRecherche->val);
-    if (resultatRecherche->val != NULL) {
+	printf("res : %s\n", resultatRecherche);
+    if (resultatRecherche != NULL) {
         printf("Noeud avec la valeur \"%s\" trouvé.\n", valeurRecherchee);
     } else {
         printf("Noeud avec la valeur \"%s\" non trouvé.\n", valeurRecherchee);
