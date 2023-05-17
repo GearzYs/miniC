@@ -58,5 +58,5 @@ L                       [a-zA-Z_]
 
 \n                        {  yylineno++;}
 [ \t\v\f]                {  }
-.                       {printf("ERREUR LEXICALE");}
+.                       {printf("Not allowed character(s) line : %d\n",yylineno); exit(1);}
 %%

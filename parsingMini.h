@@ -24,10 +24,10 @@ typedef struct noeud {
     NoeudType typeu;      // Type du noeud
 } noeud;
 
-typedef struct fonctions {
-    int nb_fonctions;
-    struct noeud **fonctions;
-} fonctions;
+typedef struct liste_noeud {
+    int nb_noeud;
+    struct noeud **liste_noeud;
+} liste_noeud;
 
 typedef struct liste_chaine_noeud {
     noeud *n;
@@ -83,16 +83,16 @@ noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud
 void afficherArbre(noeud* n);
 
 // Création d'une liste de fonctions contenant des noeuds
-fonctions* creerFonction(noeud* n);
+liste_noeud* creerListeNoeud(noeud* n);
 
 // Ajout d'une fonction à la liste de fonctions
-fonctions* addFonction(fonctions* f, noeud* n);
+liste_noeud* addNoeud(liste_noeud* f, noeud* n);
 
 //Convertie une structure arbre en Dot
 void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp);
 
 //Génère un fichier .dot à partir d'un arbre
-void generateDotFile(fonctions* n);
+void generateDotFile(liste_noeud* n);
 
 //Permet de changer la forme d'un noeud en fonction de son type
 void nodeType(FILE* f, noeud* n, int* COMPTEUR);
