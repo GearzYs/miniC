@@ -1,19 +1,68 @@
-#ifndef ARBRE_H
-#define ARBRE_H
+typedef enum {
+    IF,
+    BREAK,
+    FONCTION,
+    APPELFONCTION,
+    ARGUMENT,
+    RETURN
+} typeNoeud;
 
-typedef enum {IF,BREAK,FONCTION,APPELFONCTION,ARGUMENT,RETURN} typeNoeud;
+typedef enum {
+    NULLTYPE,
+    INTEGER,
+    INTARRAY,
+    FUNCTION,
+    VOID
+} NoeudType;
 
 typedef struct noeud {
     char *val;             // Valeur du noeud
-    struct noeud **fils;   // Tableau de pointeurs vers les fils noued[2]
-    int nb_fils;           // Nombre de fils
+    struct noeud **fils;   // Tableau de pointeurs vers les fils
     typeNoeud type;        // Type du noeud
+    int size_tab;         // Taille du tableau de fils
+    int nb_fils;           // Nombre de fils
+    NoeudType typeu;      // Type du noeud
 } noeud;
 
 typedef struct fonctions {
     int nb_fonctions;
     struct noeud **fonctions;
 } fonctions;
+
+typedef struct liste_chaine_noeud {
+    noeud *n;
+    struct liste_chaine_noeud *next;
+} liste_chaine_noeud;
+
+liste_chaine_noeud* creerListeChaineNoeud(noeud* n);
+
+
+liste_chaine_noeud* addListeChaineNoeud(liste_chaine_noeud* l, noeud* n);
+
+
+noeud* addTypeNoeud(noeud* n, char* t);
+
+
+void libererNoeud(noeud* n);
+
+
+void afficherNoeud(noeud* n);
+
+
+noeud* rechercherNoeud(noeud* n, char* valeur);
+
+
+// Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
+noeud* creerNoeud(char* val);
+
+// Ajout d'une taille à un noeud
+noeud* addSize(noeud* n, int size);
+
+
+noeud* addChild(noeud* n, noeud* child);
+
+
+noeud* addAllChild(noeud* n, liste_chaine_noeud* l);
 
 // Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
 noeud* creerNoeud(char* val);
@@ -38,8 +87,6 @@ fonctions* creerFonction(noeud* n);
 
 // Ajout d'une fonction à la liste de fonctions
 fonctions* addFonction(fonctions* f, noeud* n);
-
-#endif /* ARBRE_H */
 
 //Convertie une structure arbre en Dot
 void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp);
