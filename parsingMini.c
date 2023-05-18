@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parsingMini.h"
+#include <stdbool.h>
+#include <ctype.h>
+
 int COMPTEUR = 0;
+
 noeud* creerNoeud(char* val) {
     noeud* n = malloc(sizeof(noeud));
     n->val = val;
@@ -10,16 +14,17 @@ noeud* creerNoeud(char* val) {
 }
 noeud* addTypeNoeud(noeud* n, char* t) {
     if (strcmp(t, "int") == 0) {
-        n->type = INTEGER;
+        n->typeu = INTEGER;
     } else if (strcmp(t, "void") == 0) {
-        n->type = VOID;
+        n->typeu = VOIDE;
     } else if (strcmp(t, "array") == 0) {
-        n->type = INTARRAY;
+        n->typeu = INTARRAY;
     } else if (strcmp(t, "function") == 0) {
-        n->type = FUNCTION;
+        n->typeu = FUNCTION;
     }
     return n;
 }
+
 noeud* addSize(noeud* n, int size) {
     n->size_tab = size;
     return n;
@@ -32,36 +37,7 @@ noeud* addChild(noeud* parent, noeud* child) {
     parent->size_tab = parent->nb_fils;
     return parent;
 }
-noeud* appendChild1(noeud* n, noeud* child) {
-    n->nb_fils++;
-    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
-    n->fils[n->nb_fils - 1] = child;
-    return n;
-}
-noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
-    n->nb_fils += 2;
-    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
-    n->fils[n->nb_fils - 2] = child1;
-    n->fils[n->nb_fils - 1] = child2;
-    return n;
-}
-noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3) {
-    n->nb_fils += 3;
-    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
-    n->fils[n->nb_fils - 3] = child1;
-    n->fils[n->nb_fils - 2] = child2;
-    n->fils[n->nb_fils - 1] = child3;
-    return n;
-}
-noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud* child4) {
-    n->nb_fils += 4;
-    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
-    n->fils[n->nb_fils - 4] = child1;
-    n->fils[n->nb_fils - 3] = child2;
-    n->fils[n->nb_fils - 2] = child3;
-    n->fils[n->nb_fils - 1] = child4;
-    return n;
-}
+
 liste_chaine_noeud* creerListeChaineNoeud(noeud* n) {
     liste_chaine_noeud* l = malloc(sizeof(liste_chaine_noeud));
     l->n = n;
@@ -81,6 +57,7 @@ liste_chaine_noeud* addListeChaineNoeud(liste_chaine_noeud* l, noeud* n) {
     return l;
 }
 
+// qjoute listechaine à l'arbre en faisant 1 noeud par elt de listechaine
 noeud* addAllChild(noeud* n, liste_chaine_noeud* l) {
     liste_chaine_noeud* current = l;
     while (current != NULL) {
@@ -120,7 +97,7 @@ void afficherNoeud(noeud* n) {
         case FUNCTION:
             printf("Type du noeud : FUNCTION\n");
             break;
-        case VOID:
+        case VOIDE:
             printf("Type du noeud : VOID\n");
             break;
         default:
@@ -158,6 +135,129 @@ noeud* rechercherNoeud(noeud* n, char* valeur) {
         }
     }
     return NULL;
+}
+
+//check sur les variables
+bool verifierTypeNoeud(noeud* n, NoeudType typeAttendu) {
+    return n->typeu == typeAttendu;
+}
+
+bool firstLetterIsString(noeud* n) {
+    char premiereLettre = n->val[0];
+    return isalpha(premiereLettre) != 0;
+}
+
+//lles sont de type entier ou tableau d’entiers à un nombre quelconque de dimensions
+bool varTypeIsIntOrIntArray(noeud* n) {
+    return verifierTypeNoeud(n, INTEGER) || verifierTypeNoeud(n, INTARRAY);
+}
+
+// voir khalil pour ca : elles ne peuvent être déclarées qu’en début de programme (variables globales) ou qu’au début d’un bloc (variables locales)
+
+//check sur fonction
+//c'est la grammaire qui autorise pas autre chose
+//si tu met une variable qui existe pas bah tu devra mettre l'erreur que la variable existe pas
+
+bool functionIsDeclared(noeud* n, char* nameFunction){
+    noeud* res = rechercherNoeud(n, nameFunction);
+    if (res == NULL) {
+        printf("Erreur : la fonction '%s' n'est pas déclarée.\n", nameFunction);
+        return false;
+    }
+    return true;
+}
+
+bool firstLetterFunctionIsString(char* nameFunction){
+    char premiereLettre = nameFunction[0];
+    if (!isalpha(premiereLettre)) {
+        printf("Erreur de déclaration de fonction : le nom de la fonction '%s' ne commence pas par une lettre.\n", nameFunction);
+        return false;
+    }
+    return true;
+}
+
+bool verifierDeclarationFonction(Fonction* fonction) {
+    // Vérification du type de la fonction
+    printf("\nnom de la fonction : %s\n", fonction->nom);
+    printf("type de la fonction : %d\n", fonction->typeRetour);
+    printf("nb parametres de la fonction : %d\n", fonction->nbParametres);
+    printf("type de parametres de la fonction : %d\n", fonction->parametres);
+    if (firstLetterFunctionIsString(fonction->nom) == false) {
+        return false;
+    }
+    printf("type de la fonction : %d\n", fonction->typeRetour);
+    if (fonction->typeRetour != INTEGER && fonction->typeRetour != VOIDE) {
+        printf("Erreur de déclaration de fonction : le type de la fonction '%s' est invalide.\n", fonction->nom);
+        return false;
+    }
+    
+    // Vérification des paramètres de la fonction
+    for (int i = 0; i < fonction->nbParametres; i++) {
+        Parametre parametre = fonction->parametres[i];
+        
+        // Vérification du nom du paramètre
+        char premiereLettre = parametre.nom[0];
+        if (!isalpha(premiereLettre)) {
+            printf("Erreur de déclaration de fonction : le nom du paramètre '%s' de la fonction '%s' ne commence pas par une lettre.\n", parametre.nom, fonction->nom);
+            return false;
+        }
+        
+        // Vérification du type du paramètre
+        if (parametre.type != INTEGER) {
+            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' est invalide.\n", parametre.nom, fonction->nom);
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+
+
+/*
+idee utiliser rechercherNoeud pour  trouver un noeud et apres donner ce noeud a mes autres foonctions selon ce que je veux faire
+si la var est declarer -> rechercherNoeud
+si quand on une utilise une var c le bon type -> rechercherNoeud qu'on donne en paraametre a verifierTypeNoeud et type attendu INTEGER
+Chercher la variable dans les blocs au dessus si tu la trouve pas (moi c'est un arbre avec des noeuds qui ont des fils) -> rechercherNoeud
+*/
+
+/*
+si quand on appelle une function elle est bien declarer 
+si la fonction possède le bon nombre de paramq
+et le type des params
+*/
+
+
+//khalil 
+noeud* appendChild1(noeud* n, noeud* child) {
+    n->nb_fils++;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 1] = child;
+    return n;
+}
+noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
+    n->nb_fils += 2;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 2] = child1;
+    n->fils[n->nb_fils - 1] = child2;
+    return n;
+}
+noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3) {
+    n->nb_fils += 3;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 3] = child1;
+    n->fils[n->nb_fils - 2] = child2;
+    n->fils[n->nb_fils - 1] = child3;
+    return n;
+}
+noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud* child4) {
+    n->nb_fils += 4;
+    n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
+    n->fils[n->nb_fils - 4] = child1;
+    n->fils[n->nb_fils - 3] = child2;
+    n->fils[n->nb_fils - 2] = child3;
+    n->fils[n->nb_fils - 1] = child4;
+    return n;
 }
 
 void afficherArbre(noeud* n) {

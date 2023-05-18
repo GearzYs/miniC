@@ -239,6 +239,58 @@ binary_comp	:
 %%
 extern int yylineno;
 
+void testVerifierTypeNoeud() {
+    // Création d'un nœud avec le type attendu
+    noeud* n = creerNoeud("test");
+    bool b = firstLetterIsString(n);
+    printf("firstLetterIsString (test) : %s\n", b ? "true" : "false");
+	
+    // Test avec un nom de fonction commençant par une lettre
+    Fonction* fonction1 = malloc(sizeof(Fonction));
+    fonction1->nom = "addition";
+    fonction1->typeRetour = INTEGER;
+    fonction1->parametres = NULL;
+    fonction1->nbParametres = 0;
+    bool res1 = verifierDeclarationFonction(fonction1);
+    printf("verifierDeclarationFonction (addition) : %s\n", res1 ? "true" : "false");
+    
+    // Test avec un nom de fonction ne commençant pas par une lettre
+    Fonction* fonction2 = malloc(sizeof(Fonction));
+    fonction2->nom = "_1division";
+    fonction2->typeRetour = VOIDE;
+    fonction2->parametres = NULL;
+    fonction2->nbParametres = 0;
+    bool res2 = verifierDeclarationFonction(fonction2);
+    printf("verifierDeclarationFonction (1division) : %s\n", res2 ? "true" : "false");
+
+	// Test nombre de paramètres d'une fonction
+	Fonction* fonction = malloc(sizeof(Fonction));
+	fonction->nom = "maFonction";
+	fonction->typeRetour = INTEGER;
+	fonction->nbParametres = 2;
+	fonction->parametres = malloc(fonction->nbParametres * sizeof(Parametre));
+
+	// Premier paramètre
+	fonction->parametres[0].nom = "param1";
+	fonction->parametres[0].type = INTEGER;
+
+	// Deuxième paramètre
+	fonction->parametres[1].nom = "param2";
+	fonction->parametres[1].type = INTARRAY;
+	printf("\n\n");
+	printf("param 1 : %s\n", fonction->parametres[0].nom);
+	printf("type param 1 : %d\n", fonction->parametres[0].type);
+	printf("param 2 : %s\n", fonction->parametres[1].nom);
+	printf("type param 2 : %d\n", fonction->parametres[1].type);
+    
+    // Libération de la mémoire
+    libererNoeud(n);
+    free(fonction1);
+    free(fonction2);
+}
+
+
+
 void yyerror(char *s){
 	 fprintf(stderr, " line %d: %s\n", yylineno, s);
 	 exit(1);
@@ -249,6 +301,7 @@ int yywrap() {
 }
 
 int main(void) {
-	clearFile();
-	while(yyparse());
+	testVerifierTypeNoeud();
+	/* clearFile();
+	while(yyparse()); */
 }
