@@ -6,5 +6,7 @@ int main() {
 	if (i==5) break;
    }
    printd(i);
+   printd(i);
+   printd(i);
    return i+3;
 }

@@ -6,6 +6,7 @@ int COMPTEUR = 0;
 noeud* creerNoeud(char* val) {
     noeud* n = malloc(sizeof(noeud));
     n->val = val;
+    n->nb_fils = 0;
     return n;
 }
 noeud* addTypeNoeud(noeud* n, char* t) {
@@ -33,12 +34,22 @@ noeud* addChild(noeud* parent, noeud* child) {
     return parent;
 }
 noeud* appendChild1(noeud* n, noeud* child) {
+    if(child==NULL){
+        return n;
+    }
     n->nb_fils++;
     n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
     n->fils[n->nb_fils - 1] = child;
     return n;
 }
 noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
+    if (child1==NULL){
+        return appendChild1(n,child2);
+    }
+    if(child2==NULL)
+    {
+        return appendChild1(n,child1);
+    }
     n->nb_fils += 2;
     n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
     n->fils[n->nb_fils - 2] = child1;
@@ -46,6 +57,17 @@ noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
     return n;
 }
 noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3) {
+    if (child1==NULL){
+        return appendChild2(n,child2,child3);
+    }
+    if(child2==NULL)
+    {
+        return appendChild2(n,child1,child3);
+    }
+    if(child3==NULL)
+    {
+        return appendChild2(n,child1,child2);
+    }
     n->nb_fils += 3;
     n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
     n->fils[n->nb_fils - 3] = child1;
@@ -54,6 +76,21 @@ noeud* appendChild3(noeud* n, noeud* child1, noeud* child2, noeud* child3) {
     return n;
 }
 noeud* appendChild4(noeud* n, noeud* child1, noeud* child2, noeud* child3, noeud* child4) {
+    if (child1==NULL){
+        return appendChild3(n,child2,child3,child4);
+    }
+    if(child2==NULL)
+    {
+        return appendChild3(n,child1,child3,child4);
+    }
+    if(child3==NULL)
+    {
+        return appendChild3(n,child1,child2,child4);
+    }
+    if(child4==NULL)
+    {
+        return appendChild3(n,child1,child2,child3);
+    }
     n->nb_fils += 4;
     n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));
     n->fils[n->nb_fils - 4] = child1;
@@ -187,18 +224,28 @@ void afficherArbre(noeud* n) {
     printf(")\n");
 }
 
-liste_noeud* addNoeud(liste_noeud* f, noeud* n){
-  f->nb_noeud++;
-  f->liste_noeud = realloc(f->liste_noeud, f->nb_noeud * sizeof(noeud*));
-  f->liste_noeud[f->nb_noeud - 1] = n;
-  return f;
-}
-
 liste_noeud* creerListeNoeud(noeud* n){
   liste_noeud* f = malloc(sizeof(liste_noeud));
+  if (n==NULL){
+    return f;
+  }
   f->nb_noeud = 1;
   f->liste_noeud = malloc(sizeof(noeud*));
   f->liste_noeud[0] = n;
+  return f;
+}
+
+liste_noeud* addNoeud(liste_noeud* f, noeud* n){
+    if (f == NULL) {
+        f=creerListeNoeud(n);
+        return f;
+    }
+    if (n == NULL) {
+        return f;
+    }
+  f->nb_noeud++;
+  f->liste_noeud = realloc(f->liste_noeud, f->nb_noeud * sizeof(noeud*));
+  f->liste_noeud[f->nb_noeud - 1] = n;
   return f;
 }
 
@@ -261,8 +308,10 @@ void generateDotFile(liste_noeud* listfunc){
   printf("Génération du fichier dot\n");
   for (int i = 0; i < listfunc->nb_noeud; i++) {
     printf("Affichage de la fonction %d\n", i);
-    afficherArbre(listfunc->liste_noeud[i]);
-    arbreToDot(listfunc->liste_noeud[i], &COMPTEUR, f);
+    if(listfunc->liste_noeud[i]!= NULL){
+        afficherArbre(listfunc->liste_noeud[i]);
+        arbreToDot(listfunc->liste_noeud[i], &COMPTEUR, f);
+    }
   }
   fprintf(f, "}");}
 
