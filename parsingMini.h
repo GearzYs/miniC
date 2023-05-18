@@ -130,3 +130,8 @@ bool functionIsDeclared(noeud* n, char* nameFunction);
 // verif global sur fonction 
 bool verifierDeclarationFonction(Fonction* fonction);
 
+//compare le nombre de parametres de la fonction appelée avec le nombre de parametres de la fonction déclarée
+bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres);
+
+// check si ident ne porte pas le nom d'un mot clé
+bool checkIdentName(char* name);

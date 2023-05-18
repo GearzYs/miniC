@@ -277,12 +277,35 @@ void testVerifierTypeNoeud() {
 	// Deuxième paramètre
 	fonction->parametres[1].nom = "param2";
 	fonction->parametres[1].type = INTARRAY;
+	
+	// Supposons que nous avons une fonction appelée "maFonction" qui attend 2 paramètres
 	printf("\n\n");
+	printf("Tester si nombre de param fournis correspond au nombre de param attendus.\n");
+	printf("nom fonction tester : %s\n", fonction->nom);
+	printf("nombre param attendus : %d\n", fonction->nbParametres);
 	printf("param 1 : %s\n", fonction->parametres[0].nom);
 	printf("type param 1 : %d\n", fonction->parametres[0].type);
 	printf("param 2 : %s\n", fonction->parametres[1].nom);
 	printf("type param 2 : %d\n", fonction->parametres[1].type);
-    
+	int nombreParametresFournis = 4; // Exemple avec un nombre incorrect de paramètres
+	printf("valeur var test pour nb param différents : %d\n", nombreParametresFournis);
+	bool estValide = verifierNombreParametres(fonction, nombreParametresFournis);
+	if (estValide) {
+		printf("Le nombre de paramètres est correct.\n");
+	} else {
+		printf("Le nombre de paramètres est incorrect.\n");
+	}
+	
+	// Test si un identificateur est un mot clé réservé
+	printf("\nTest si un ident porte le nom d'un mot clé ou pas\n");
+	char* identificateur = "for";
+	bool estMotCle = checkIdentName(identificateur);
+	if (!estMotCle) {
+		printf("Erreur : l'identificateur '%s' est un mot clé réservé.\n", identificateur);
+	} else {
+		printf("L'identificateur '%s' n'est pas un mot clé réservé.\n", identificateur);
+	}
+
     // Libération de la mémoire
     libererNoeud(n);
     free(fonction1);

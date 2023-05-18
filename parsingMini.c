@@ -152,11 +152,36 @@ bool varTypeIsIntOrIntArray(noeud* n) {
     return verifierTypeNoeud(n, INTEGER) || verifierTypeNoeud(n, INTARRAY);
 }
 
-// voir khalil pour ca : elles ne peuvent être déclarées qu’en début de programme (variables globales) ou qu’au début d’un bloc (variables locales)
+
+
+/*
+A FAIRE :
+Les identificateurs :
+— ils ne peuvent pas porter le nom d’un mot clé réserve : extern, int, void, for, while, if, then,
+else, switch, case, default, break
+
+Les variables :
+— elles ne peuvent être déclarées qu’en début de programme (variables globales) ou qu’au début d’un
+bloc (variables locales).
+-Chercher la variable dans les blocs au dessus si tu la trouve pas (moi c'est un arbre avec des noeuds qui ont des fils) -> rechercherNoeud
+— une fonction peut être déclarée extern. Dans ce cas, elle est déclarée mais pas définie/implémentée
+
+— Les fonctions :
+-fonction de type void puisse pas return
+— un seul niveau de déclaration de fonctions est possible (pas d’imbrications de déclarations)
+— une fonction peut être déclarée extern. Dans ce cas, elle est déclarée mais pas définie/implémentée
+dans le programme (son code est dans un autre fichier). Cela permet de faire référencer des
+fonctions de librairie ou écrites dans un autre fichier tout en permettant de vérifier que toutes les
+fonctions utilisées soient déclarée
+*/
+
+
 
 //check sur fonction
-//c'est la grammaire qui autorise pas autre chose
-//si tu met une variable qui existe pas bah tu devra mettre l'erreur que la variable existe pas
+/*
+c'est la grammaire qui autorise pas autre chose
+si tu met une variable qui existe pas bah tu devra mettre l'erreur que la variable existe pas
+*/
 
 bool functionIsDeclared(noeud* n, char* nameFunction){
     noeud* res = rechercherNoeud(n, nameFunction);
@@ -171,6 +196,15 @@ bool firstLetterFunctionIsString(char* nameFunction){
     char premiereLettre = nameFunction[0];
     if (!isalpha(premiereLettre)) {
         printf("Erreur de déclaration de fonction : le nom de la fonction '%s' ne commence pas par une lettre.\n", nameFunction);
+        return false;
+    }
+    return true;
+}
+
+bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres) {
+    if (fonctionAppelee->nbParametres != nombreParametres) {
+        printf("Erreur : la fonction '%s' attend %d paramètres, mais %d ont été fournis.\n",
+            fonctionAppelee->nom, fonctionAppelee->nbParametres, nombreParametres);
         return false;
     }
     return true;
@@ -204,7 +238,7 @@ bool verifierDeclarationFonction(Fonction* fonction) {
         
         // Vérification du type du paramètre
         if (parametre.type != INTEGER) {
-            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' est invalide.\n", parametre.nom, fonction->nom);
+            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' n'est pas un entier.\n", parametre.nom, fonction->nom);
             return false;
         }
     }
@@ -213,20 +247,14 @@ bool verifierDeclarationFonction(Fonction* fonction) {
 }
 
 
-
-/*
-idee utiliser rechercherNoeud pour  trouver un noeud et apres donner ce noeud a mes autres foonctions selon ce que je veux faire
-si la var est declarer -> rechercherNoeud
-si quand on une utilise une var c le bon type -> rechercherNoeud qu'on donne en paraametre a verifierTypeNoeud et type attendu INTEGER
-Chercher la variable dans les blocs au dessus si tu la trouve pas (moi c'est un arbre avec des noeuds qui ont des fils) -> rechercherNoeud
-*/
-
-/*
-si quand on appelle une function elle est bien declarer 
-si la fonction possède le bon nombre de paramq
-et le type des params
-*/
-
+// check sur les identificateurs
+bool checkIdentName(char* name){
+    if (strcmp(name, "extern") == 0 || strcmp(name, "int") == 0 || strcmp(name, "void") == 0 || strcmp(name, "for") == 0 || strcmp(name, "while") == 0 || strcmp(name, "if") == 0 || strcmp(name, "then") == 0 || strcmp(name, "else") == 0 || strcmp(name, "switch") == 0 || strcmp(name, "case") == 0 || strcmp(name, "default") == 0 || strcmp(name, "break") == 0) {
+        printf("Erreur : le nom '%s' est un mot clé réservé.\n", name);
+        return false;
+    }
+    return true;
+}
 
 //khalil 
 noeud* appendChild1(noeud* n, noeud* child) {
