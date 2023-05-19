@@ -1298,7 +1298,7 @@ case 1:
 											noeud* fonction = creerNoeud("FONCTIONS");
 											fonction=addAllChild(fonction,yystack.l_mark[0].liste_noeud);
 											yyval.noeud=appendChild2(yyval.noeud,declaration,fonction);
-											verifierDeclarations(yyval.noeud);
+											checkInBlock(yyval.noeud);
 											generateDotFile(yystack.l_mark[0].liste_noeud);}
 #line 1304 "y.tab.c"
 break;

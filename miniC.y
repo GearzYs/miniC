@@ -44,7 +44,7 @@ programme	:
 											noeud* fonction = creerNoeud("FONCTIONS");
 											fonction=addAllChild(fonction,$2);
 											$$=appendChild2($$,declaration,fonction);
-											verifierDeclarations($$);
+											checkInBlock($$);
 											generateDotFile($2);}
 ;
 liste_declarations	:	

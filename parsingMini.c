@@ -566,9 +566,26 @@ noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimension
     return arbre;
 }
 
+ void checkInBlock(noeud* n){
+    if (n == NULL) {
+        printf("Erreur : l'arbre est NULL.\n");
+        return;
+    }
+    if (strcmp(n->val, "BLOC") == 0) {
+        verifierDeclarations(n);
+    }
+    else{   
+        for (int i = 0; i < n->nb_fils; i++) {
+        if (n->fils[i] != NULL) {
+                checkInBlock(n->fils[i]);
+        }
+    }
+    }
+}
+
 void verifierDeclarations(noeud* prog) {
     noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
-    arbreDeclaration=addAllChild(arbreDeclaration, prog->fils[0]->tableSymbole->fonction->declaration);
+    arbreDeclaration=addAllChild(arbreDeclaration, prog->tableSymbole->fonction->declaration);
         afficherArbre(arbreDeclaration);
 
     noeud* listeDeclarations = arbreDeclaration;

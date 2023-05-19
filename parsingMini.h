@@ -164,5 +164,7 @@ void verifierFonctions(noeud* listeFonctions);
 // regarde si une fonction est déclarée dans le noeud
 noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction);
 
+// check si cest un bloc
+ void checkInBlock(noeud* n);
 // verif global sur les fonctions
 void verifierFonctions(noeud* prog);
