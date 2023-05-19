@@ -31,35 +31,45 @@ void yyerror (char *s);
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
 %type <id> binary_rel binary_comp binary_op 
-%type <noeud> condition selection saut iteration programme instruction bloc appel affectation expression liste_declarations fonction declaration liste_declarateurs declarateur type variable parm
-%type <liste_noeud> liste_fonctions liste_instructions liste_parms liste_expressions
+%type <noeud> condition selection saut iteration programme instruction bloc appel affectation expression fonction declaration declarateur type variable parm
+%type <liste_noeud> liste_fonctions liste_instructions liste_parms liste_expressions liste_declarations liste_declarateurs
 %%
 
 programme	:	
-		liste_declarations liste_fonctions  {$$= creerNoeud("PROGRAMME");generateDotFile($2);}
+		liste_declarations liste_fonctions  {$$= creerNoeud("PROGRAMME");
+											noeud* declaration = creerNoeud("BLOC");
+											declaration->tableSymbole->fonction->declaration = $1;
+											printf("nb noeud : %d\n",$1->nb_noeud);
+											declaration=addAllChild(declaration,$1);
+											noeud* fonction = creerNoeud("FONCTIONS");
+											fonction=addAllChild(fonction,$2);
+											$$=appendChild2($$,declaration,fonction);
+											verifierDeclarations($$);
+											generateDotFile($2);}
 ;
 liste_declarations	:	
-		liste_declarations declaration  {}
-	|				{}
+		liste_declarations declaration  {$$=addNoeud($1,$2);}		
+	|				{$$=NULL;}
 ;
 liste_fonctions	:	
-		liste_fonctions fonction      {$$ = addNoeud($1,$2);afficherArbre($2);} 
-|      			fonction			{$$= creerListeNoeud($1);afficherArbre($1);}
+		liste_fonctions fonction      {$$ = addNoeud($1,$2);} 
+|      			fonction			{$$= creerListeNoeud($1);}
 ;
 declaration	:	
 		type liste_declarateurs ';' {if(strcmp($1->val,"int")==0){
-										$$ = $2 ;
+										$$ = creerNoeud("DECLARATION");
+										$$ = addAllChild($$,$2);
 									} else{
 										yyerror("Error : Declaration of a non-handled type.");
 									}}
 ;
 liste_declarateurs	:
-		liste_declarateurs ',' declarateur {$$= $1;}
-	|	declarateur  {$$ = $1;printf("liste_declarateurs\n");}
+		liste_declarateurs ',' declarateur {$$= addNoeud($1,$3);}
+	|	declarateur  {$$ = creerListeNoeud($1);}
 ;
 declarateur	:	
-		IDENTIFICATEUR   {}
-	|	declarateur '[' CONSTANTE ']'  {}  
+		IDENTIFICATEUR   {$$ = newVariable($1,yylineno);}
+	|	declarateur '[' CONSTANTE ']'  {$$=appendChild1($1,creerNoeud($3));}  
 ;
 fonction	:	
 		type IDENTIFICATEUR '(' liste_parms ')' bloc {char* funcname = (char * ) malloc(20 * sizeof(char));
@@ -67,7 +77,7 @@ fonction	:
 																								$$= creerNoeud(funcname);
 																								$$->type = FONCTION;
 																								if ($4->nb_noeud > 0){
-																									$$ = addAllChild($$,$4);
+																									$$=newFunction($$,$2,$1,$4,yylineno);
 																								}
 																								$$ = appendChild1($$,$6);
 																								}
@@ -76,7 +86,10 @@ fonction	:
 																								$$= creerNoeud(funcname);
 																								$$->type = FONCTION;
 																								if ($5->nb_noeud > 0) {
-																									$$ = addAllChild($$,$5);
+																									//$$=newFunction($$,$3,$2,$5);
+																									for(int i = 0; i < $5->nb_noeud; i++){
+																										$$ = appendChild1($$,$5->liste_noeud[i]);
+																									}
 																								}}
 ;
 type	:	
@@ -85,11 +98,11 @@ type	:
 ;
 
 liste_parms	:	
-		liste_parms ',' parm {$$=addNoeud($1,$3);printf("parms\n");}
-	|	parm {$$=creerListeNoeud($1);printf("liste_parms\n");}
+		liste_parms ',' parm {$$=addNoeud($1,$3);}
+	|	parm {$$=creerListeNoeud($1);}
 	|	{liste_noeud* f = malloc(sizeof(liste_noeud));
 			f->nb_noeud = 0;
-		$$ = f;printf("test\n");}
+		$$ = f;}
 ;
 
 parm	:	 
@@ -98,7 +111,7 @@ parm	:
 ;
 
 liste_instructions :	
-		liste_instructions instruction {printf("%s",$1) ;if ($2!=NULL) {$$=addNoeud($1,$2);}}
+		liste_instructions instruction {if ($2!=NULL) {$$=addNoeud($1,$2);}}
 	|	{$$=NULL;}
 ;
 instruction	:	
@@ -147,8 +160,13 @@ affectation	:
 ;
 bloc	:	
 		'{' liste_declarations liste_instructions '}' {$$= creerNoeud("BLOC");
+														$$->tableSymbole->fonction->declaration=$2;
 														if ($3->nb_noeud > 0){
-															$$=addAllChild($$,$3);
+														for(int i = 0; i < $3->nb_noeud; i++){
+															if ($3->liste_noeud[i]!=NULL){
+															$$ = appendChild1($$,$3->liste_noeud[i]);
+														}
+														}
 														}
 }
 ;
@@ -156,7 +174,12 @@ appel	:
 		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$= creerNoeud($1);
 														$$->type = APPELFONCTION;
 														if ($3->nb_noeud > 0){
-															$$=addAllChild($$,$3);
+														for(int i = 0; i < $3->nb_noeud; i++){
+															if ($3->liste_noeud[i]!=NULL){
+															$3->liste_noeud[i]->type = ARGUMENT;
+															$$ = appendChild1($$,$3->liste_noeud[i]);
+															}
+														}
 													}}
 ;
 variable	:	

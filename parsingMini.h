@@ -13,32 +13,15 @@ typedef enum {
     INTEGER,
     INTARRAY,
     FUNCTION,
+    AFFECTATION,
     VOIDE
 } NoeudType;
 
-typedef struct {
-    int* dimensions;
-    int nb_dimensions;
-} TableauDimensions;
-
-typedef struct noeud {
-    char *val;                 // Valeur du noeud
-    struct noeud **fils;       // Tableau de pointeurs vers les fils
-    typeNoeud type;            // Type du noeud
-    NoeudType typeu;           // Type du noeud
-    TableauDimensions* tabDim; // Tableau de dimensions (le cas échéant)
-    struct Fonction *fonction;  // Référence à la fonction associée (le cas échéant)
-    int size_tab;              // Taille du tableau de fils
-    int nb_fils;               // Nombre de fils
-} noeud;
-
-
 typedef struct liste_noeud {
     int nb_noeud;
-    struct noeud **liste_noeud;
+    struct noeud **liste_noeud; // tableau de pointeurs vers les noeuds
 } liste_noeud;
 
-// pour stocker info su param et type
 typedef struct {
     char* nom;
     NoeudType type;
@@ -48,10 +31,35 @@ typedef struct {
 typedef struct {
     char* nom;
     NoeudType typeRetour;
-    Parametre* parametres;
+    liste_noeud* declaration;
+    Parametre **parametres; // tableau de pointeurs vers les parametres
     int nbParametres;
-    int nb_fonctions;
-} Fonction;
+} fonction;
+
+typedef struct {
+    int* dimensions;
+    int nb_dimensions;
+} TableauDimensions;
+
+typedef struct tableSymbole { 
+    char* name;
+    TableauDimensions* tabDim;
+    int tailleTab;
+    NoeudType typeu;           // Type du noeud
+    fonction *fonction;  // Référence à la fonction associée (le cas échéant)
+    int line;
+} tableSymbole;
+
+typedef struct noeud {
+    char *val;                 // Valeur du noeud
+    struct noeud **fils;       // Tableau de pointeurs vers les fils
+    int nb_fils;               // Nombre de fils
+    typeNoeud type;            // Type du noeud DOT
+    tableSymbole *tableSymbole;  // Référence au symbole associé (le cas échéant)
+} noeud;
+
+// pour stocker info su param et type
+
 
 noeud* addTypeNoeud(noeud* n, char* t);
 
@@ -67,8 +75,8 @@ void afficherNoeud(noeud* n);
 // Convertie un string en type
 int stringToType(char* type);
 
+// Recherche une valeur dans un noeud
 noeud* rechercherNoeud(noeud* n, char* valeur);
-
 
 // Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
 noeud* creerNoeud(char* val);
@@ -76,14 +84,11 @@ noeud* creerNoeud(char* val);
 // Ajout d'une taille à un noeud
 noeud* addSize(noeud* n, int size);
 
-
+// Ajout d'un fils à un noeud
 noeud* addChild(noeud* n, noeud* child);
 
 // Ajout des fils d'une liste de noeuds à un noeud
 noeud* addAllChild(noeud* n, liste_noeud* f);
-
-// Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
-noeud* creerNoeud(char* val);
 
 // Ajout d'un fils à un noeud
 noeud* appendChild1(noeud* n, noeud* child) ;
@@ -131,10 +136,10 @@ bool varTypeIsIntOrIntArray(noeud* n);
 bool functionIsDeclared(noeud* n, char* nameFunction);
 
 // verif global sur fonction 
-bool verifierDeclarationFonction(Fonction* fonction);
+bool verifierDeclarationFonction(fonction* fonction);
 
 //compare le nombre de parametres de la fonction appelée avec le nombre de parametres de la fonction déclarée
-bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres);
+bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres);
 
 // check si ident ne porte pas le nom d'un mot clé
 bool checkIdentName(char* name);
@@ -144,3 +149,20 @@ void ajouterDimensionTableau(noeud* tableau, int taille);
 
 // declare un tableau
 noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimensions);
+
+// declare une nouvelle fonction
+noeud* newFunction(noeud* n, char* nameFunction, noeud* typeFunction, liste_noeud* parametres, int line);
+
+// declare une nouvelle variable
+noeud* newVariable(char* name, int line);
+
+// verif si var est un int ou un int[] et es declarer
+void verifierDeclarations(noeud* listeDeclarations);
+//verif si fonction est déclarée
+void verifierFonctions(noeud* listeFonctions);
+
+// regarde si une fonction est déclarée dans le noeud
+noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction);
+
+// verif global sur les fonctions
+void verifierFonctions(noeud* prog);

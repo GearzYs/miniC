@@ -10,22 +10,29 @@ noeud* creerNoeud(char* val) {
     noeud* n = malloc(sizeof(noeud));
     n->val = val;
     n->nb_fils = 0;
+    n->tableSymbole = malloc(sizeof(tableSymbole));
+    n->tableSymbole->tailleTab = 0;
+    n->tableSymbole->fonction = malloc(sizeof(fonction));
+    n->tableSymbole->tabDim = NULL;
+    n->tableSymbole->typeu = NULLTYPE;
+    n->tableSymbole->name = NULL;
     return n;
 }
 noeud* addTypeNoeud(noeud* n, char* t) {
     if (strcmp(t, "int") == 0) {
-        n->typeu = INTEGER;
+        n->tableSymbole->typeu = INTEGER;
     } else if (strcmp(t, "void") == 0) {
-        n->typeu = VOIDE;
+        n->tableSymbole->typeu = VOIDE;
     } else if (strcmp(t, "array") == 0) {
-        n->typeu = INTARRAY;
+        n->tableSymbole->typeu = INTARRAY;
     } else if (strcmp(t, "function") == 0) {
-        n->typeu = FUNCTION;
+        n->tableSymbole->typeu = FUNCTION;
     }
     return n;
 }
+
 noeud* addSize(noeud* n, int size) {
-    n->size_tab = size;
+    n->tableSymbole->tailleTab = size;
     return n;
 }
 
@@ -33,9 +40,10 @@ noeud* addChild(noeud* parent, noeud* child) {
     parent->nb_fils++;
     parent->fils = realloc(parent->fils, parent->nb_fils * sizeof(noeud*));
     parent->fils[parent->nb_fils - 1] = child;
-    parent->size_tab = parent->nb_fils;
+    parent->tableSymbole->tailleTab = parent->nb_fils;
     return parent;
 }
+
 noeud* appendChild1(noeud* n, noeud* child) {
     if(child==NULL){
         return n;
@@ -112,6 +120,7 @@ noeud* addAllChild(noeud* n, liste_noeud* f) {
     }
     for (int i = 0; i < f->nb_noeud; i++) {
         n = appendChild1(n, f->liste_noeud[i]);
+        printf("nb fils : %d\n", n->nb_fils);
     }
     return n;
 }
@@ -121,7 +130,7 @@ void libererNoeud(noeud* n) {
         return;
     }
     
-    for (int i = 0; i < n->size_tab; i++) {
+    for (int i = 0; i < n->tableSymbole->tailleTab; i++) {
         libererNoeud(n->fils[i]);
     }
     
@@ -136,7 +145,7 @@ void afficherNoeud(noeud* n) {
     
     printf("Valeur du noeud : %s\n", n->val);
     
-    switch (n->typeu) {
+    switch (n->tableSymbole->typeu) {
         case INTEGER:
             printf("Type du noeud : INTEGER\n");
             break;
@@ -170,7 +179,7 @@ noeud* rechercherNoeud(noeud* n, char* valeur) {
     printf("nb fils : %d\n", n->nb_fils);
     printf("Recherche de %s\n", valeur);
 
-    if (strcmp(n->val, valeur) == 0) {
+    if (strcmp(n->tableSymbole->name, valeur) == 0) {
         printf("trouvé\n");
         return n;
     }
@@ -328,9 +337,7 @@ void generateDotFile(liste_noeud* listfunc){
   fprintf(f, "digraph G {\n");
   printf("Génération du fichier dot\n");
   for (int i = 0; i < listfunc->nb_noeud; i++) {
-    printf("Affichage de la fonction %d\n", i);
     if(listfunc->liste_noeud[i]!= NULL){
-        afficherArbre(listfunc->liste_noeud[i]);
         arbreToDot(listfunc->liste_noeud[i], &COMPTEUR, f);
     }
   }
@@ -343,7 +350,7 @@ void clearFile(){
 
 //check sur les variables
 bool verifierTypeNoeud(noeud* n, NoeudType typeAttendu) {
-    return n->typeu == typeAttendu;
+    return n->tableSymbole->typeu == typeAttendu;
 }
 
 bool firstLetterIsString(noeud* n) {
@@ -374,7 +381,32 @@ bool firstLetterFunctionIsString(char* nameFunction){
     return true;
 }
 
-bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres) {
+noeud* newFunction(noeud* n, char* nameFunction, noeud* typeFunction, liste_noeud* parametres, int line) {
+    n->type = FONCTION;
+    n->tableSymbole->name = nameFunction;
+    n->tableSymbole->line = line;
+    n->tableSymbole->fonction->typeRetour = stringToType(typeFunction->val); // ici j'ai mis dans typeRetour le type de la fonction
+    n->tableSymbole->fonction->nbParametres = parametres->nb_noeud;
+    n->tableSymbole->fonction->parametres = malloc(sizeof(Parametre*) * parametres->nb_noeud);
+    n->tableSymbole->fonction->nom = nameFunction;
+    for (int i = 0; i < parametres->nb_noeud; i++) {
+        n->tableSymbole->fonction->parametres[i]->type = parametres->liste_noeud[i]->fils[0]->tableSymbole->typeu;
+        n->tableSymbole->fonction->parametres[i]->nom = parametres->liste_noeud[i]->fils[0]->tableSymbole->name;
+        n=appendChild1(n,parametres->liste_noeud[i]);
+    }
+    return n;
+}
+
+
+noeud* newVariable(char* name, int line) {
+    noeud* var = creerNoeud(name);
+    var->tableSymbole->name = name;
+    var->tableSymbole->typeu = INTEGER;
+    var->tableSymbole->line = line;
+    return var;
+}
+
+bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres) {
     if (fonctionAppelee->nbParametres != nombreParametres) {
         printf("Erreur : la fonction '%s' attend %d paramètres, mais %d ont été fournis.\n",
             fonctionAppelee->nom, fonctionAppelee->nbParametres, nombreParametres);
@@ -383,7 +415,7 @@ bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres) {
     return true;
 }
 
-bool verifierDeclarationFonction(Fonction* fonction) {
+bool verifierDeclarationFonction(fonction* fonction) {
     // Vérification du type de la fonction
     printf("\nnom de la fonction : %s\n", fonction->nom);
     printf("type de la fonction : %d\n", fonction->typeRetour);
@@ -400,18 +432,17 @@ bool verifierDeclarationFonction(Fonction* fonction) {
     
     // Vérification des paramètres de la fonction
     for (int i = 0; i < fonction->nbParametres; i++) {
-        Parametre parametre = fonction->parametres[i];
         
         // Vérification du nom du paramètre
-        char premiereLettre = parametre.nom[0];
+        char premiereLettre = fonction->parametres[i]->nom[0];
         if (!isalpha(premiereLettre)) {
-            printf("Erreur de déclaration de fonction : le nom du paramètre '%s' de la fonction '%s' ne commence pas par une lettre.\n", parametre.nom, fonction->nom);
+            printf("Erreur de déclaration de fonction : le nom du paramètre '%s' de la fonction '%s' ne commence pas par une lettre.\n", fonction->parametres[i]->nom, fonction->nom);
             return false;
         }
         
         // Vérification du type du paramètre
-        if (parametre.type != INTEGER) {
-            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' n'est pas un entier.\n", parametre.nom, fonction->nom);
+        if (fonction->parametres[i]->type != INTEGER) {
+            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' n'est pas un entier.\n", fonction->parametres[i]->nom, fonction->nom);
             return false;
         }
     }
@@ -432,35 +463,35 @@ bool checkIdentName(char* name){
 //declaration tableau
 void ajouterDimensionTableau(noeud* tableau, int taille) {
     // Vérification si le nœud est de type tableau
-    if (tableau->typeu != INTARRAY) {
+    if (tableau->tableSymbole->typeu != INTARRAY) {
         printf("Erreur : Le nœud n'est pas un tableau.\n");
         return;
     }
     // Vérification si le tableau n'a pas encore de dimensions
-    if (tableau->tabDim == NULL) {
+    if (tableau->tableSymbole->tabDim == NULL) {
         // Allouer la structure TableauDimensions
-        tableau->tabDim = (TableauDimensions*) malloc(sizeof(TableauDimensions));
+        tableau->tableSymbole->tabDim = (TableauDimensions*) malloc(sizeof(TableauDimensions));
         // Allouer le tableau de dimensions
-        tableau->tabDim->dimensions = (int*) malloc(sizeof(int));
+        tableau->tableSymbole->tabDim->dimensions = (int*) malloc(sizeof(int));
         // Initialiser le nombre de dimensions à 1
-        tableau->tabDim->nb_dimensions = 1;
+        tableau->tableSymbole->tabDim->nb_dimensions = 1;
         // Ajouter la taille de la première dimension
-        tableau->tabDim->dimensions[0] = taille;
+        tableau->tableSymbole->tabDim->dimensions[0] = taille;
     } else {
         // Récupérer le nombre de dimensions actuel
-        int nbDimensionsActuel = tableau->tabDim->nb_dimensions;
+        int nbDimensionsActuel = tableau->tableSymbole->tabDim->nb_dimensions;
         // Allouer un nouveau tableau de dimensions avec une taille augmentée de 1
         int* newDimensions = (int*) malloc((nbDimensionsActuel + 1) * sizeof(int));
         // Copier les dimensions actuelles dans le nouveau tableau
-        memcpy(newDimensions, tableau->tabDim->dimensions, nbDimensionsActuel * sizeof(int));
+        memcpy(newDimensions, tableau->tableSymbole->tabDim->dimensions, nbDimensionsActuel * sizeof(int));
         // Libérer l'ancien tableau de dimensions
-        free(tableau->tabDim->dimensions);
+        free(tableau->tableSymbole->tabDim->dimensions);
         // Affecter le nouveau tableau de dimensions au nœud
-        tableau->tabDim->dimensions = newDimensions;
+        tableau->tableSymbole->tabDim->dimensions = newDimensions;
         // Ajouter la taille de la nouvelle dimension à la fin du tableau
-        tableau->tabDim->dimensions[nbDimensionsActuel] = taille;
+        tableau->tableSymbole->tabDim->dimensions[nbDimensionsActuel] = taille;
         // Augmenter le nombre de dimensions
-        tableau->tabDim->nb_dimensions++;
+        tableau->tableSymbole->tabDim->nb_dimensions++;
     }
 }
 
@@ -491,8 +522,8 @@ noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimension
 
     // Création du nœud du tableau
     noeud* tableau = creerNoeud(nomTableau);
-    tableau->typeu = INTARRAY;
-    tableau->size_tab = taille; // Assigner la taille du tableau
+    tableau->tableSymbole->typeu = INTARRAY;
+    tableau->tableSymbole->tailleTab = taille; // Assigner la taille du tableau
 
     // Si le tableau a plusieurs dimensions
     if (dimensions > 1) {
@@ -506,7 +537,7 @@ noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimension
             char nomDimension[15];
             sprintf(nomDimension, "dimension%d", i + 1);
             noeud* dimension = creerNoeud(nomDimension);
-            dimension->typeu = INTEGER;
+            dimension->tableSymbole->typeu = INTEGER;
             dimension->val = malloc(10 * sizeof(char)); // Allocation mémoire pour la valeur
             sprintf(dimension->val, "%d", taille);
 
@@ -518,19 +549,114 @@ noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimension
         }
 
         // Assigner le tableau de dimensions au tableau principal
-        tableau->tabDim = malloc(sizeof(TableauDimensions));
-        tableau->tabDim->dimensions = dimensionsArray;
-        tableau->tabDim->nb_dimensions = dimensions;
+        tableau->tableSymbole->tabDim = malloc(sizeof(TableauDimensions));
+        tableau->tableSymbole->tabDim->dimensions = dimensionsArray;
+        tableau->tableSymbole->tabDim->nb_dimensions = dimensions;
     } else {
         // Cas où le tableau a une seule dimension
-        tableau->tabDim = malloc(sizeof(TableauDimensions));
-        tableau->tabDim->dimensions = malloc(sizeof(int));
-        tableau->tabDim->dimensions[0] = taille;
-        tableau->tabDim->nb_dimensions = dimensions;
+        tableau->tableSymbole->tabDim= malloc(sizeof(TableauDimensions));
+        tableau->tableSymbole->tabDim->dimensions = malloc(sizeof(int));
+        tableau->tableSymbole->tabDim->dimensions[0] = taille;
+        tableau->tableSymbole->tabDim->nb_dimensions = dimensions;
     }
 
     // Ajout du nœud du tableau à l'arbre
     appendChild1(arbre, tableau);
 
     return arbre;
+}
+
+void verifierDeclarations(noeud* prog) {
+    noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
+    arbreDeclaration=addAllChild(arbreDeclaration, prog->fils[0]->tableSymbole->fonction->declaration);
+        afficherArbre(arbreDeclaration);
+
+    noeud* listeDeclarations = arbreDeclaration;
+    printf("1Entre dans %s\n", listeDeclarations->fils[0]->fils[0]->tableSymbole->name);
+    printf("Nombre de fils : %d\n", listeDeclarations->nb_fils);
+    for (int i = 0; i < listeDeclarations->nb_fils; i++) {
+        noeud* declaration = listeDeclarations->fils[i]->fils[0];
+        printf("2Entre dans %s\n", declaration->tableSymbole->name);
+        // Vérifier si la déclaration est unique
+        char* nomVariable = declaration->tableSymbole->name;
+        for (int j = 0; j < i; j++) {
+            if (strcmp(nomVariable, listeDeclarations->fils[0]->fils[j]->tableSymbole->name) == 0) {
+                printf("Erreur : la variable '%s' est déclarée plusieurs fois ligne : %d.\n", nomVariable, declaration->tableSymbole->line);
+                break;
+            }
+        }
+
+        // Vérifier le type de la variable
+        NoeudType typeVariable = declaration->tableSymbole->typeu;
+        if (typeVariable != INTEGER && typeVariable != INTARRAY) {
+            printf("Erreur : le type de la variable '%s' est incorrect.\n", nomVariable);
+        }
+    }
+}
+
+noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {
+    if (noeudCourant == NULL) {
+        return NULL;
+    }
+
+    if (noeudCourant->type == FONCTION && strcmp(noeudCourant->tableSymbole->name, nomFonction) == 0) {
+        return noeudCourant;
+    }
+
+    for (int i = 0; i < noeudCourant->nb_fils; i++) {
+        noeud* resultat = rechercherFonction(noeudCourant->fils[i], nomFonction);
+        if (resultat != NULL) {
+            return resultat;
+        }
+    }
+
+    return NULL;
+}
+
+
+void verifierFonctions(noeud* prog) {
+    noeud* listeFonctions = prog->fils[1];
+    int nbFils = listeFonctions->nb_fils;
+    for (int i = 0; i < nbFils; i++) {
+        noeud* fonction = listeFonctions->fils[i];
+        // Vérifier si la fonction est unique
+        char* nomFonction = fonction->tableSymbole->name;
+        for (int j = 0; j < i; j++) {
+            if (strcmp(nomFonction, listeFonctions->fils[j]->tableSymbole->name) == 0) {
+                printf("Erreur : la fonction '%s' est déclarée plusieurs fois.\n", nomFonction);
+                break;
+            }
+        }
+
+        // Vérifier le type de la fonction
+        NoeudType typeFonction = fonction->tableSymbole->fonction->typeRetour;
+        if (typeFonction != INTEGER && typeFonction != VOIDE) {
+            printf("Erreur : le type de la fonction '%s' est incorrect.\n", nomFonction);
+        }
+
+        // Vérifier les paramètres de la fonction
+        int nbParametres = fonction->tableSymbole->fonction->nbParametres;
+        for (int j = 0; j < nbParametres; j++) {
+            Parametre* parametre = fonction->tableSymbole->fonction->parametres[j];
+            // Vérifier le type du paramètre
+            // Vérifier si le paramètre est de type APPELFONCTION
+            if (parametre->type == APPELFONCTION) {
+                // Récupérer la fonction appelée
+                char* nomFonctionAppelee = parametre->nom;
+                noeud* fonctionAppelee = rechercherFonction(prog, nomFonctionAppelee);
+                if (fonctionAppelee == NULL) {
+                    printf("Erreur : la fonction '%s' appelée dans le paramètre '%s' de la fonction '%s' n'existe pas.\n", nomFonctionAppelee, parametre->nom, nomFonction);
+                } else {
+                    // Vérifier le nombre de paramètres attendu
+                    int nbParametresAttendus = fonctionAppelee->tableSymbole->fonction->nbParametres;
+                    if (nbParametres != nbParametresAttendus) {
+                        printf("Erreur : la fonction '%s' appelée dans le paramètre '%s' de la fonction '%s' ne prend pas le bon nombre de paramètres.\n", nomFonctionAppelee, parametre->nom, nomFonction);
+                    }
+                }
+            }
+            if (parametre->type != INTEGER) {
+                printf("Erreur : le type du paramètre '%s' de la fonction '%s' est incorrect.\n", parametre->nom, nomFonction);
+            }
+        }
+    }
 }
