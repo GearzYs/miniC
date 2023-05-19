@@ -1,8 +1,9 @@
+#include <stdbool.h>
 typedef enum {
     IF,
     BREAK,
     FONCTION,
-    APPELFONCTION,
+    APPELFONCTION,  
     ARGUMENT,
     RETURN
 } typeNoeud;
@@ -12,42 +13,59 @@ typedef enum {
     INTEGER,
     INTARRAY,
     FUNCTION,
-    VOID
+    VOIDE
 } NoeudType;
 
+typedef struct {
+    int* dimensions;
+    int nb_dimensions;
+} TableauDimensions;
+
 typedef struct noeud {
-    char *val;             // Valeur du noeud
-    struct noeud **fils;   // Tableau de pointeurs vers les fils
-    typeNoeud type;        // Type du noeud
-    int size_tab;         // Taille du tableau de fils
-    int nb_fils;           // Nombre de fils
-    NoeudType typeu;      // Type du noeud
+    char *val;                 // Valeur du noeud
+    struct noeud **fils;       // Tableau de pointeurs vers les fils
+    typeNoeud type;            // Type du noeud
+    NoeudType typeu;           // Type du noeud
+    TableauDimensions* tabDim; // Tableau de dimensions (le cas échéant)
+    struct Fonction *fonction;  // Référence à la fonction associée (le cas échéant)
+    int size_tab;              // Taille du tableau de fils
+    int nb_fils;               // Nombre de fils
 } noeud;
+
 
 typedef struct liste_noeud {
     int nb_noeud;
     struct noeud **liste_noeud;
 } liste_noeud;
 
-typedef struct liste_chaine_noeud {
-    noeud *n;
-    struct liste_chaine_noeud *next;
-} liste_chaine_noeud;
+// pour stocker info su param et type
+typedef struct {
+    char* nom;
+    NoeudType type;
+} Parametre;
 
-liste_chaine_noeud* creerListeChaineNoeud(noeud* n);
-
-
-liste_chaine_noeud* addListeChaineNoeud(liste_chaine_noeud* l, noeud* n);
-
+// pour stocker info sur fonction
+typedef struct {
+    char* nom;
+    NoeudType typeRetour;
+    Parametre* parametres;
+    int nbParametres;
+    int nb_fonctions;
+} Fonction;
 
 noeud* addTypeNoeud(noeud* n, char* t);
 
+// Convertie un type en string
+char* typeToString(NoeudType typeu);
 
+// Libère la mémoire allouée à un noeud
 void libererNoeud(noeud* n);
 
-
+// Affiche le noeud
 void afficherNoeud(noeud* n);
 
+// Convertie un string en type
+int stringToType(char* type);
 
 noeud* rechercherNoeud(noeud* n, char* valeur);
 
@@ -61,8 +79,8 @@ noeud* addSize(noeud* n, int size);
 
 noeud* addChild(noeud* n, noeud* child);
 
-
-noeud* addAllChild(noeud* n, liste_chaine_noeud* l);
+// Ajout des fils d'une liste de noeuds à un noeud
+noeud* addAllChild(noeud* n, liste_noeud* f);
 
 // Création d'un nouveau noeud avec une valeur et un nombre de fils donnés
 noeud* creerNoeud(char* val);
@@ -99,3 +117,30 @@ void nodeType(FILE* f, noeud* n, int* COMPTEUR);
 
 //Vide le fichier .dot
 void clearFile();
+
+//Vérifie si un noeud est de type attendu(pour une var c'est int)
+bool verifierTypeNoeud(noeud* n, NoeudType typeAttendu);
+
+// verif si premiere lettre est une string
+bool firstLetterIsString(noeud* n);
+
+// verif si var est un int ou un int[]
+bool varTypeIsIntOrIntArray(noeud* n);
+
+// verif si fonction est déclarée
+bool functionIsDeclared(noeud* n, char* nameFunction);
+
+// verif global sur fonction 
+bool verifierDeclarationFonction(Fonction* fonction);
+
+//compare le nombre de parametres de la fonction appelée avec le nombre de parametres de la fonction déclarée
+bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres);
+
+// check si ident ne porte pas le nom d'un mot clé
+bool checkIdentName(char* name);
+
+// ajoute une dimension et sa taille à un tableau
+void ajouterDimensionTableau(noeud* tableau, int taille);
+
+// declare un tableau
+noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimensions);
