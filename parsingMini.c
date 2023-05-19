@@ -30,6 +30,7 @@ noeud* addSize(noeud* n, int size) {
     return n;
 }
 
+
 noeud* addChild(noeud* parent, noeud* child) {
     parent->nb_fils++;
     parent->fils = realloc(parent->fils, parent->nb_fils * sizeof(noeud*));
@@ -256,6 +257,115 @@ bool checkIdentName(char* name){
     return true;
 }
 
+
+//declaration tableau
+void ajouterDimensionTableau(noeud* tableau, int taille) {
+    // Vérification si le nœud est de type tableau
+    if (tableau->typeu != INTARRAY) {
+        printf("Erreur : Le nœud n'est pas un tableau.\n");
+        return;
+    }
+    // Vérification si le tableau n'a pas encore de dimensions
+    if (tableau->tabDim == NULL) {
+        // Allouer la structure TableauDimensions
+        tableau->tabDim = (TableauDimensions*) malloc(sizeof(TableauDimensions));
+        // Allouer le tableau de dimensions
+        tableau->tabDim->dimensions = (int*) malloc(sizeof(int));
+        // Initialiser le nombre de dimensions à 1
+        tableau->tabDim->nb_dimensions = 1;
+        // Ajouter la taille de la première dimension
+        tableau->tabDim->dimensions[0] = taille;
+    } else {
+        // Récupérer le nombre de dimensions actuel
+        int nbDimensionsActuel = tableau->tabDim->nb_dimensions;
+        // Allouer un nouveau tableau de dimensions avec une taille augmentée de 1
+        int* newDimensions = (int*) malloc((nbDimensionsActuel + 1) * sizeof(int));
+        // Copier les dimensions actuelles dans le nouveau tableau
+        memcpy(newDimensions, tableau->tabDim->dimensions, nbDimensionsActuel * sizeof(int));
+        // Libérer l'ancien tableau de dimensions
+        free(tableau->tabDim->dimensions);
+        // Affecter le nouveau tableau de dimensions au nœud
+        tableau->tabDim->dimensions = newDimensions;
+        // Ajouter la taille de la nouvelle dimension à la fin du tableau
+        tableau->tabDim->dimensions[nbDimensionsActuel] = taille;
+        // Augmenter le nombre de dimensions
+        tableau->tabDim->nb_dimensions++;
+    }
+}
+
+noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimensions) {
+    if (arbre == NULL) {
+        printf("Erreur : l'arbre est NULL.\n");
+        return NULL;
+    }
+    if (nomTableau == NULL) {
+        printf("Erreur : le nom du tableau est NULL.\n");
+        return NULL;
+    }
+    if (taille <= 0) {
+        printf("Erreur : la taille du tableau est invalide.\n");
+        return NULL;
+    }
+    if (dimensions <= 0) {
+        printf("Erreur : le nombre de dimensions du tableau est invalide.\n");
+        return NULL;
+    }
+    if (checkIdentName(nomTableau) == false) {
+        return NULL;
+    }
+    if (rechercherNoeud(arbre, nomTableau) != NULL) {
+        printf("Erreur : le tableau '%s' est déjà déclaré.\n", nomTableau);
+        return NULL;
+    }
+
+    // Création du nœud du tableau
+    noeud* tableau = creerNoeud(nomTableau);
+    tableau->typeu = INTARRAY;
+    tableau->size_tab = taille; // Assigner la taille du tableau
+
+    // Si le tableau a plusieurs dimensions
+    if (dimensions > 1) {
+        // Création du tableau de dimensions
+        int* dimensionsArray = malloc(dimensions * sizeof(int));
+        dimensionsArray[0] = taille;
+
+        // Création de nœuds pour chaque dimension
+        for (int i = 1; i < dimensions; i++) {
+            // Création du nœud de dimension
+            char nomDimension[15];
+            sprintf(nomDimension, "dimension%d", i + 1);
+            noeud* dimension = creerNoeud(nomDimension);
+            dimension->typeu = INTEGER;
+            dimension->val = malloc(10 * sizeof(char)); // Allocation mémoire pour la valeur
+            sprintf(dimension->val, "%d", taille);
+
+            // Ajout du nœud de dimension au tableau
+            appendChild1(tableau, dimension);
+
+            // Ajout de la taille de la dimension au tableau de dimensions
+            dimensionsArray[i] = taille;
+        }
+
+        // Assigner le tableau de dimensions au tableau principal
+        tableau->tabDim = malloc(sizeof(TableauDimensions));
+        tableau->tabDim->dimensions = dimensionsArray;
+        tableau->tabDim->nb_dimensions = dimensions;
+    } else {
+        // Cas où le tableau a une seule dimension
+        tableau->tabDim = malloc(sizeof(TableauDimensions));
+        tableau->tabDim->dimensions = malloc(sizeof(int));
+        tableau->tabDim->dimensions[0] = taille;
+        tableau->tabDim->nb_dimensions = dimensions;
+    }
+
+    // Ajout du nœud du tableau à l'arbre
+    appendChild1(arbre, tableau);
+
+    return arbre;
+}
+
+
+
 //khalil 
 noeud* appendChild1(noeud* n, noeud* child) {
     n->nb_fils++;
@@ -263,6 +373,7 @@ noeud* appendChild1(noeud* n, noeud* child) {
     n->fils[n->nb_fils - 1] = child;
     return n;
 }
+
 noeud* appendChild2(noeud* n, noeud* child1, noeud* child2) {
     n->nb_fils += 2;
     n->fils = realloc(n->fils, n->nb_fils * sizeof(noeud*));

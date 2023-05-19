@@ -16,15 +16,22 @@ typedef enum {
     VOIDE
 } NoeudType;
 
+typedef struct {
+    int* dimensions;
+    int nb_dimensions;
+} TableauDimensions;
+
 typedef struct noeud {
     char *val;                 // Valeur du noeud
     struct noeud **fils;       // Tableau de pointeurs vers les fils
     typeNoeud type;            // Type du noeud
+    NoeudType typeu;           // Type du noeud
+    TableauDimensions* tabDim; // Tableau de dimensions (le cas échéant)
+    struct Fonction *fonction;  // Référence à la fonction associée (le cas échéant)
     int size_tab;              // Taille du tableau de fils
     int nb_fils;               // Nombre de fils
-    NoeudType typeu;           // Type du noeud
-    struct Fonction *fonction;  // Référence à la fonction associée (le cas échéant)
 } noeud;
+
 
 typedef struct liste_noeud {
     int nb_noeud;
@@ -135,3 +142,9 @@ bool verifierNombreParametres(Fonction* fonctionAppelee, int nombreParametres);
 
 // check si ident ne porte pas le nom d'un mot clé
 bool checkIdentName(char* name);
+
+// ajoute une dimension et sa taille à un tableau
+void ajouterDimensionTableau(noeud* tableau, int taille);
+
+// declare un tableau
+noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimensions);

@@ -264,7 +264,7 @@ void testVerifierTypeNoeud() {
     printf("verifierDeclarationFonction (1division) : %s\n", res2 ? "true" : "false");
 
 	// Test nombre de paramètres d'une fonction
-	Fonction* fonction = malloc(sizeof(Fonction));
+	/* Fonction* fonction = malloc(sizeof(Fonction));
 	fonction->nom = "maFonction";
 	fonction->typeRetour = INTEGER;
 	fonction->nbParametres = 2;
@@ -276,10 +276,10 @@ void testVerifierTypeNoeud() {
 
 	// Deuxième paramètre
 	fonction->parametres[1].nom = "param2";
-	fonction->parametres[1].type = INTARRAY;
+	fonction->parametres[1].type = INTARRAY; */
 	
 	// Supposons que nous avons une fonction appelée "maFonction" qui attend 2 paramètres
-	printf("\n\n");
+	/* printf("\n\n");
 	printf("Tester si nombre de param fournis correspond au nombre de param attendus.\n");
 	printf("nom fonction tester : %s\n", fonction->nom);
 	printf("nombre param attendus : %d\n", fonction->nbParametres);
@@ -295,7 +295,7 @@ void testVerifierTypeNoeud() {
 	} else {
 		printf("Le nombre de paramètres est incorrect.\n");
 	}
-	
+	 */
 	// Test si un identificateur est un mot clé réservé
 	printf("\nTest si un ident porte le nom d'un mot clé ou pas\n");
 	char* identificateur = "for";
@@ -306,6 +306,24 @@ void testVerifierTypeNoeud() {
 		printf("L'identificateur '%s' n'est pas un mot clé réservé.\n", identificateur);
 	}
 
+	// Test de la fonction ajouterDimensionTableau
+    printf("\nTest de la fonction ajouterDimensionTableau\n");
+    char* arbre = "arbre1";
+	noeud* arb = creerNoeud(arbre);
+    arb = declarerTableau(arb, "tableau1", 2, 2);
+	printf("Affichage de l'arbre après ajout d'un tableau : \n");
+	printf("\n\n");
+	if (arb != NULL) {
+		noeud* fils1 = arb->fils[0];
+		printf("fils1 : %s\n", fils1->val);
+		printf("type fils1 : %d\n", fils1->typeu);
+		printf("taille arbre1 : %d\n", fils1->size_tab);
+		printf("nb dimensions arbre1 : %d\n", fils1->tabDim->nb_dimensions);
+	} else {
+		printf("Erreur : l'arbre est NULL.\n");
+	}
+	
+	//afficherNoeud(arb);
     // Libération de la mémoire
     libererNoeud(n);
     free(fonction1);
