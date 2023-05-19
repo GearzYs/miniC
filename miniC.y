@@ -31,8 +31,8 @@ void yyerror (char *s);
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
 %type <id> binary_rel binary_comp binary_op 
-%type <noeud> condition type selection saut iteration programme instruction bloc appel affectation expression fonction declaration declarateur variable parm
-%type <liste_noeud> liste_fonctions liste_instructions liste_parms liste_expressions liste_declarateurs liste_declarations 
+%type <noeud> condition selection saut iteration programme instruction bloc appel affectation expression liste_declarations fonction declaration liste_declarateurs declarateur type variable parm
+%type <liste_noeud> liste_fonctions liste_instructions liste_parms liste_expressions
 %%
 
 programme	:	
@@ -43,21 +43,19 @@ liste_declarations	:
 	|				{}
 ;
 liste_fonctions	:	
-		liste_fonctions fonction      {$$ = addNoeud($1,$2);} 
-|      			fonction			{$$= creerListeNoeud($1);}
+		liste_fonctions fonction      {$$ = addNoeud($1,$2);afficherArbre($2);} 
+|      			fonction			{$$= creerListeNoeud($1);afficherArbre($1);}
 ;
 declaration	:	
-		type liste_declarateurs ';' {if(($2!=NULL)&&(strcmp($1->val,"int")==0)){
-												$$=addAllChild($$,$2);
-									}
-									else{
-											yyerror("Error : Declaration of a non-handled type.");
-										}
-									}
+		type liste_declarateurs ';' {if(strcmp($1->val,"int")==0){
+										$$ = $2 ;
+									} else{
+										yyerror("Error : Declaration of a non-handled type.");
+									}}
 ;
 liste_declarateurs	:
-		liste_declarateurs ',' declarateur {;}
-	|	declarateur  {}
+		liste_declarateurs ',' declarateur {$$= $1;}
+	|	declarateur  {$$ = $1;printf("liste_declarateurs\n");}
 ;
 declarateur	:	
 		IDENTIFICATEUR   {}
@@ -69,15 +67,16 @@ fonction	:
 																								$$= creerNoeud(funcname);
 																								$$->type = FONCTION;
 																								if ($4->nb_noeud > 0){
-																									$$=addAllChild($$,$4);
+																									$$ = addAllChild($$,$4);
 																								}
-																								$$ = appendChild1($$,$6);}
+																								$$ = appendChild1($$,$6);
+																								}
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {char* funcname = (char * ) malloc(20 * sizeof(char));
 																								sprintf(funcname,"EXTERN %s, %s",$3,$2->val);
 																								$$= creerNoeud(funcname);
 																								$$->type = FONCTION;
 																								if ($5->nb_noeud > 0) {
-																									$$=addAllChild($$,$5);
+																									$$ = addAllChild($$,$5);
 																								}}
 ;
 type	:	
@@ -86,11 +85,11 @@ type	:
 ;
 
 liste_parms	:	
-		liste_parms ',' parm {$$=addNoeud($1,$3);}
-	|	parm {$$=creerListeNoeud($1);}
+		liste_parms ',' parm {$$=addNoeud($1,$3);printf("parms\n");}
+	|	parm {$$=creerListeNoeud($1);printf("liste_parms\n");}
 	|	{liste_noeud* f = malloc(sizeof(liste_noeud));
 			f->nb_noeud = 0;
-		$$ = f;}
+		$$ = f;printf("test\n");}
 ;
 
 parm	:	 
@@ -99,8 +98,8 @@ parm	:
 ;
 
 liste_instructions :	
-		liste_instructions instruction {$$=addNoeud($1,$2);}
-	|	instruction				{$$=creerListeNoeud($1);}
+		liste_instructions instruction {printf("%s",$1) ;if ($2!=NULL) {$$=addNoeud($1,$2);}}
+	|	{$$=NULL;}
 ;
 instruction	:	
 		iteration {$$=$1;}
@@ -148,27 +147,22 @@ affectation	:
 ;
 bloc	:	
 		'{' liste_declarations liste_instructions '}' {$$= creerNoeud("BLOC");
-														$$ = addAllChild($$,$2);
 														if ($3->nb_noeud > 0){
-														for(int i = 0; i < $3->nb_noeud; i++){
-															$$ = appendChild1($$,$3->liste_noeud[i]);
+															$$=addAllChild($$,$3);
 														}
-	}}
+}
 ;
 appel	:	
 		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$= creerNoeud($1);
 														$$->type = APPELFONCTION;
 														if ($3->nb_noeud > 0){
-														for(int i = 0; i < $3->nb_noeud; i++){
-															$3->liste_noeud[i]->type = ARGUMENT;
-															$$ = appendChild1($$,$3->liste_noeud[i]);
-														}
+															$$=addAllChild($$,$3);
 													}}
 ;
 variable	:	
 		IDENTIFICATEUR  {$$ = creerNoeud($1);}
-	|	variable '[' expression ']' {$$ = creerNoeud("[]");
-									$$ = appendChild1($$,$3);}
+	|	variable '[' expression ']' {$$ = creerNoeud("TAB");
+									$$ = appendChild2($$,$1,$3);}
 ;
 expression	:	
 		'(' expression ')'	{$$ = $2;}                      
