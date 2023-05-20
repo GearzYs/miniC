@@ -37,14 +37,15 @@ void yyerror (char *s);
 
 programme	:	
 		liste_declarations liste_fonctions  {$$= creerNoeud("PROGRAMME");
+		    								liste_error* listeError = NULL;
 											noeud* declaration = creerNoeud("BLOC");
+											declaration->type = GLOBAL;
 											declaration->tableSymbole->fonction->declaration = $1;
-											printf("nb noeud : %d\n",$1->nb_noeud);
-											declaration=addAllChild(declaration,$1);
 											noeud* fonction = creerNoeud("FONCTIONS");
 											fonction=addAllChild(fonction,$2);
 											$$=appendChild2($$,declaration,fonction);
-											checkInBlock($$);
+											listeError=checkInBlock($$,$$->fils[0],listeError);
+											afficherErrors(listeError);
 											generateDotFile($2);}
 ;
 liste_declarations	:	
@@ -155,7 +156,7 @@ saut	:
 ;
 affectation	:	 
 		variable '=' expression   {$$ = creerNoeud(":=");
-									$3->type = ARGUMENT;
+									$3->type = AFFECTATION;
 									$$ = appendChild2($$,$1,$3);}
 ;
 bloc	:	
@@ -176,7 +177,6 @@ appel	:
 														if ($3->nb_noeud > 0){
 														for(int i = 0; i < $3->nb_noeud; i++){
 															if ($3->liste_noeud[i]!=NULL){
-															$3->liste_noeud[i]->type = ARGUMENT;
 															$$ = appendChild1($$,$3->liste_noeud[i]);
 															}
 														}

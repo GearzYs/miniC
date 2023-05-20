@@ -120,7 +120,6 @@ noeud* addAllChild(noeud* n, liste_noeud* f) {
     }
     for (int i = 0; i < f->nb_noeud; i++) {
         n = appendChild1(n, f->liste_noeud[i]);
-        printf("nb fils : %d\n", n->nb_fils);
     }
     return n;
 }
@@ -193,6 +192,42 @@ noeud* rechercherNoeud(noeud* n, char* valeur) {
         }
     }
     return NULL;
+}
+
+liste_noeud* addNoeudList(liste_noeud* a, liste_noeud* b) {
+    if (a == NULL) {
+        return b;
+    }
+    if (b == NULL) {
+        return a;
+    }
+    liste_noeud* res = creerListeNoeud(NULL);
+    res->nb_noeud = a->nb_noeud + b->nb_noeud;
+    res->liste_noeud = malloc(res->nb_noeud * sizeof(noeud*));
+    for (int i = 0; i < a->nb_noeud; i++) {
+        res->liste_noeud[i] = a->liste_noeud[i];
+    }
+    for (int i = 0; i < b->nb_noeud; i++) {
+        res->liste_noeud[i + a->nb_noeud] = b->liste_noeud[i];
+    }
+    return res;
+}
+
+liste_noeud* rechercherNoeudListe(noeud* n,char* valeur){
+    if (n == NULL) {
+        return NULL;
+    }
+    liste_noeud* res = creerListeNoeud(NULL);
+    if (strcmp(n->tableSymbole->name, valeur) == 0) {
+        res = addNoeud(res, n);
+    }
+    for (int i = 0; i < n->nb_fils; i++) {
+        liste_noeud* res2 = rechercherNoeudListe(n->fils[i], valeur);
+        if (res2 != NULL) {
+            res = addNoeudList(res, res2);
+        }
+    }
+    return res;
 }
 
 void afficherArbre(noeud* n) {
@@ -566,49 +601,134 @@ noeud* declarerTableau(noeud* arbre, char* nomTableau, int taille, int dimension
     return arbre;
 }
 
- void checkInBlock(noeud* n){
+
+liste_error* addNewError(liste_error* liste, char* message, int line) {
+    error* newError = malloc(sizeof(error));
+    newError->message = message;
+    newError->line = line;
+    if (liste==NULL){
+        liste = malloc(sizeof(liste_error));
+        liste->nb_error = 1;
+        liste->liste_error = malloc(sizeof(error*));
+        liste->liste_error[0] = newError;
+        return liste;
+    }
+    liste->nb_error++;
+    liste->liste_error = realloc(liste->liste_error, liste->nb_error * sizeof(error*));
+    liste->liste_error[liste->nb_error - 1] = newError;
+    return liste;
+}
+
+liste_error* addNewListError(liste_error* error1, liste_error* error2){
+    if (error1 == NULL) {
+        return error2;
+    }
+    if (error2 == NULL) {
+        return error1;
+    }
+    liste_error* newList = malloc(sizeof(liste_error));
+    newList->nb_error = error1->nb_error + error2->nb_error;
+    newList->liste_error = malloc(newList->nb_error * sizeof(error*));
+    for (int i = 0; i < error1->nb_error; i++) {
+        newList->liste_error[i] = error1->liste_error[i];
+    }
+    for (int i = 0; i < error2->nb_error; i++) {
+        newList->liste_error[i + error1->nb_error] = error2->liste_error[i];
+    }
+    return newList;
+}
+
+void afficherError(error* error){
+    if (error == NULL)
+    {
+        printf("Erreur : l'erreur est NULL.\n");
+    }
+    
+    printf("Erreur : ligne %d -> %s\n", error->line, error->message);
+}
+
+bool afficherErrors(liste_error* liste){
+    if (liste == NULL) {
+        printf("Aucune erreur trouvée.\n");
+        return false;
+    }
+    for (int i = 0; i < liste->nb_error; i++) {
+        afficherError(liste->liste_error[i]);
+    }
+    return true;
+}
+
+ liste_error* checkInBlock(noeud* n, noeud* arbreGlobal, liste_error* listeError){
     if (n == NULL) {
         printf("Erreur : l'arbre est NULL.\n");
-        return;
+        return NULL;
     }
     if (strcmp(n->val, "BLOC") == 0) {
-        verifierDeclarations(n);
+        if (n->type==GLOBAL){
+        listeError = verifierDeclarations(n,NULL,listeError);
+        }
+        else{
+        listeError =verifierDeclarations(n,arbreGlobal,listeError);
+        }
     }
     else{   
         for (int i = 0; i < n->nb_fils; i++) {
         if (n->fils[i] != NULL) {
-                checkInBlock(n->fils[i]);
+            listeError=checkInBlock(n->fils[i],arbreGlobal,listeError);
         }
     }
     }
+    return listeError;
 }
 
-void verifierDeclarations(noeud* prog) {
+liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* listeError) {
     noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
-    arbreDeclaration=addAllChild(arbreDeclaration, prog->tableSymbole->fonction->declaration);
-        afficherArbre(arbreDeclaration);
-
-    noeud* listeDeclarations = arbreDeclaration;
-    printf("1Entre dans %s\n", listeDeclarations->fils[0]->fils[0]->tableSymbole->name);
-    printf("Nombre de fils : %d\n", listeDeclarations->nb_fils);
-    for (int i = 0; i < listeDeclarations->nb_fils; i++) {
-        noeud* declaration = listeDeclarations->fils[i]->fils[0];
-        printf("2Entre dans %s\n", declaration->tableSymbole->name);
-        // Vérifier si la déclaration est unique
-        char* nomVariable = declaration->tableSymbole->name;
-        for (int j = 0; j < i; j++) {
-            if (strcmp(nomVariable, listeDeclarations->fils[0]->fils[j]->tableSymbole->name) == 0) {
-                printf("Erreur : la variable '%s' est déclarée plusieurs fois ligne : %d.\n", nomVariable, declaration->tableSymbole->line);
-                break;
+    liste_noeud* liste;
+    if (arbreGlobal == NULL) {
+        liste = prog->tableSymbole->fonction->declaration;
+    }
+    else{
+        liste = addNoeudList(arbreGlobal->tableSymbole->fonction->declaration,prog->tableSymbole->fonction->declaration);
+    }
+    arbreDeclaration=addAllChild(arbreDeclaration, liste);
+    printf("nb fils : %d\n",arbreDeclaration->nb_fils);
+    for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
+        for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
+            if (arbreDeclaration->fils[i]->fils[k]==NULL){
+                continue;
             }
-        }
-
+            noeud* declaration = arbreDeclaration->fils[i]->fils[k];
+            // Vérifier si la déclaration est unique
+            char* nomVariable = declaration->tableSymbole->name;
+            for (int j = 0; j < arbreDeclaration->nb_fils; j++) {
+                for (int l=0;l<arbreDeclaration->fils[j]->nb_fils;l++){
+                    if (i==j && k==l){
+                        continue;
+                    }
+                    if (arbreDeclaration->fils[j]->fils[l]==NULL){
+                        continue;
+                    }
+                    if (strcmp(nomVariable, arbreDeclaration->fils[j]->fils[l]->tableSymbole->name) == 0) {
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "la variable '%s' est déjà déclarée", nomVariable);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        listeError = addNewError(listeError, message, arbreDeclaration->fils[j]->fils[l]->tableSymbole->line);
+                        arbreDeclaration->fils[j]->fils[l]=NULL;
+                        break;
+                    }
+                }
+            }
         // Vérifier le type de la variable
         NoeudType typeVariable = declaration->tableSymbole->typeu;
         if (typeVariable != INTEGER && typeVariable != INTARRAY) {
-            printf("Erreur : le type de la variable '%s' est incorrect.\n", nomVariable);
+            char* message = malloc(100 * sizeof(char));
+            sprintf(message, "le type de la variable '%s' est incorrect", nomVariable);
+            message = realloc(message, strlen(message) * sizeof(char));
+            listeError = addNewError(listeError, message, declaration->tableSymbole->line);
+        }
         }
     }
+    return listeError;
 }
 
 noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {
@@ -673,6 +793,41 @@ void verifierFonctions(noeud* prog) {
             }
             if (parametre->type != INTEGER) {
                 printf("Erreur : le type du paramètre '%s' de la fonction '%s' est incorrect.\n", parametre->nom, nomFonction);
+            }
+        }
+    }
+}
+
+
+void verifierAffectations(noeud* bloc) {
+    for (int i = 0; i < bloc->nb_fils; i++){
+        noeud* instruction = bloc->fils[i];
+        if (instruction->type == AFFECTATION) {
+            noeud* variable = instruction->fils[0];
+            noeud* valeur = instruction->fils[1];
+
+            char* nomVariable = variable->val;
+            noeud* declaration = rechercherNoeud(bloc, nomVariable);
+
+            if (declaration == NULL) {
+                printf("Erreur : la variable '%s' n'est pas déclarée dans le bloc.\n", nomVariable);
+            } else {
+                if (valeur->type== APPELFONCTION) {
+                    noeud* fonction = rechercherFonction(bloc, valeur->val);
+                    if (fonction != NULL) {
+                        NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
+                        if (typeRetour != INTEGER) {
+                            printf("Erreur : la fonction '%s' ne retourne pas un type INT.\n", valeur->val);
+                        }
+                    } else {
+                        printf("Erreur : la fonction '%s' n'est pas déclarée dans le bloc.\n", valeur->val);
+                    }
+                } else {
+                    NoeudType typeValeur = valeur->tableSymbole->typeu;
+                    if (typeValeur != INTEGER) {
+                        printf("Erreur : la variable '%s' doit être affectée avec une valeur de type INT.\n", nomVariable);
+                    }
+                }
             }
         }
     }

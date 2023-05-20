@@ -2,9 +2,10 @@
 typedef enum {
     IF,
     BREAK,
+    GLOBAL,
     FONCTION,
     APPELFONCTION,  
-    ARGUMENT,
+    AFFECTATION,
     RETURN
 } typeNoeud;
 
@@ -13,7 +14,6 @@ typedef enum {
     INTEGER,
     INTARRAY,
     FUNCTION,
-    AFFECTATION,
     VOIDE
 } NoeudType;
 
@@ -58,6 +58,15 @@ typedef struct noeud {
     tableSymbole *tableSymbole;  // Référence au symbole associé (le cas échéant)
 } noeud;
 
+typedef struct error {
+    int line;
+    char* message;
+} error;
+
+typedef struct liste_error {
+    int nb_error;
+    struct error **liste_error; // tableau de pointeurs vers les erreurs
+} liste_error;
 // pour stocker info su param et type
 
 
@@ -157,7 +166,8 @@ noeud* newFunction(noeud* n, char* nameFunction, noeud* typeFunction, liste_noeu
 noeud* newVariable(char* name, int line);
 
 // verif si var est un int ou un int[] et es declarer
-void verifierDeclarations(noeud* listeDeclarations);
+liste_error* verifierDeclarations(noeud* prog, noeud* global, liste_error* listeError);
+
 //verif si fonction est déclarée
 void verifierFonctions(noeud* listeFonctions);
 
@@ -165,6 +175,28 @@ void verifierFonctions(noeud* listeFonctions);
 noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction);
 
 // check si cest un bloc
- void checkInBlock(noeud* n);
+liste_error* checkInBlock(noeud* n, noeud* arbreGlobal, liste_error* listeError);
+
 // verif global sur les fonctions
 void verifierFonctions(noeud* prog);
+
+// verif global sur les affectations
+void verifierAffectations(noeud* bloc);
+
+// rechercher un noeud dans une liste de noeuds
+liste_noeud* rechercherNoeudListe(noeud* n,char* valeur);
+
+// ajoute un noeud a une liste de noeuds
+liste_noeud* addNoeudList(liste_noeud* a, liste_noeud* b);
+
+// ajouter erreur a la liste d'erreur
+liste_error* addNewError(liste_error* liste, char* message, int line);
+
+// affiche les erreurs
+bool afficherErrors(liste_error* liste);
+
+//afficher erreur
+void afficherError(error* error);
+
+// concatene 2 listes d'erreurs
+liste_error* addNewListError(liste_error* error1, liste_error* error2);
