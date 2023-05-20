@@ -130,7 +130,11 @@ instruction	:
 ;
 iteration	:	
 		FOR '(' affectation ';' condition ';' affectation ')' instruction 	{$$= creerNoeud("FOR");
-																			$$ = appendChild4($$,$3,$5,$7,$9);}
+																			if (strcmp($9->val,"BLOC")==1){
+																				$$ = appendChild4($$,$3,$5,$7,$9);
+																			} else {
+																				$$ = appendChild4($$,$3,$5,$7,$9->fils[0]);
+																			}}
 	|	WHILE '(' condition ')' instruction {$$= creerNoeud("WHILE");
 											$$ = appendChild2($$,$3,$5);}
 	|   error '\n' {yyerror("reenter last");
@@ -143,7 +147,14 @@ selection	:
 	|	IF '(' condition ')' instruction ELSE instruction {$$= creerNoeud("IF");
 															$$ = appendChild3($$,$3,$5,$7);}
 	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("SWITCH");
-												$$ = appendChild2($$,$3,$5);}
+												if (strcmp($5->val,"BLOC")==1){
+													$$ = appendChild2($$,$3,$5);
+												} else {
+													$$ = appendChild1($$,$3);
+													for(int i = 0; i < $5->nb_fils; i++){
+														$$ = appendChild1($$,$5->fils[i]);
+													}
+												}}
 	|	CASE CONSTANTE ':' instruction {$$= creerNoeud("CASE");
 										noeud* constante = creerNoeud($2);
 										$$ = appendChild2($$,constante,$4);}
