@@ -45,7 +45,9 @@ programme	:
 											fonction=addAllChild(fonction,$2);
 											$$=appendChild2($$,declaration,fonction);
 											listeError=checkInBlock($$,$$->fils[0],listeError);
-											afficherErrors(listeError);
+											if(afficherErrors(listeError)){
+												exit(1);
+											}
 											generateDotFile($2);}
 ;
 liste_declarations	:	
@@ -100,15 +102,18 @@ type	:
 
 liste_parms	:	
 		liste_parms ',' parm {$$=addNoeud($1,$3);}
-	|	parm {$$=creerListeNoeud($1);}
+	|	parm {liste_noeud* f = malloc(sizeof(liste_noeud));
+			f->nb_noeud = 0;
+			$$ = f;
+			$$=addNoeud($$,$1);}
 	|	{liste_noeud* f = malloc(sizeof(liste_noeud));
 			f->nb_noeud = 0;
 		$$ = f;}
 ;
 
 parm	:	 
-		INT IDENTIFICATEUR  {$$ = creerNoeud("INT");
-							$$ = appendChild1($$,creerNoeud($2));}
+		INT IDENTIFICATEUR  {$$ = creerNoeud($2);
+							$$->tableSymbole->typeu=INTEGER;}
 ;
 
 liste_instructions :	

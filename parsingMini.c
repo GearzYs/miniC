@@ -418,20 +418,32 @@ bool firstLetterFunctionIsString(char* nameFunction){
 
 noeud* newFunction(noeud* n, char* nameFunction, noeud* typeFunction, liste_noeud* parametres, int line) {
     n->type = FONCTION;
+    if (parametres->liste_noeud[0]==NULL){
+        printf("parametres null\n");
+    }
+    n->tableSymbole->typeu = FUNCTION;
     n->tableSymbole->name = nameFunction;
     n->tableSymbole->line = line;
     n->tableSymbole->fonction->typeRetour = stringToType(typeFunction->val); // ici j'ai mis dans typeRetour le type de la fonction
-    n->tableSymbole->fonction->nbParametres = parametres->nb_noeud;
-    n->tableSymbole->fonction->parametres = malloc(sizeof(Parametre*) * parametres->nb_noeud);
+    if (parametres == NULL) {
+        n->tableSymbole->fonction->nbParametres = 0;
+        n->tableSymbole->fonction->parametres = NULL;
+    }
+    else{
+        n->tableSymbole->fonction->nbParametres = parametres->nb_noeud;
+        n->tableSymbole->fonction->parametres = malloc(sizeof(Parametre*) * parametres->nb_noeud);
+        n->tableSymbole->fonction->parametres[0] = malloc(sizeof(Parametre));
+        n->tableSymbole->fonction->parametres[0]->type = parametres->liste_noeud[0]->tableSymbole->typeu;
+    }
     n->tableSymbole->fonction->nom = nameFunction;
-    for (int i = 0; i < parametres->nb_noeud; i++) {
-        n->tableSymbole->fonction->parametres[i]->type = parametres->liste_noeud[i]->fils[0]->tableSymbole->typeu;
-        n->tableSymbole->fonction->parametres[i]->nom = parametres->liste_noeud[i]->fils[0]->tableSymbole->name;
+    for (int i = 0; i < n->tableSymbole->fonction->nbParametres; i++) {
+        n->tableSymbole->fonction->parametres[i] = malloc(sizeof(Parametre));
+        n->tableSymbole->fonction->parametres[i]->type = parametres->liste_noeud[i]->tableSymbole->typeu;
+        n->tableSymbole->fonction->parametres[i]->nom = parametres->liste_noeud[i]->val; 
         n=appendChild1(n,parametres->liste_noeud[i]);
     }
     return n;
 }
-
 
 noeud* newVariable(char* name, int line) {
     noeud* var = creerNoeud(name);
@@ -439,50 +451,6 @@ noeud* newVariable(char* name, int line) {
     var->tableSymbole->typeu = INTEGER;
     var->tableSymbole->line = line;
     return var;
-}
-
-bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres) {
-    if (fonctionAppelee->nbParametres != nombreParametres) {
-        printf("Erreur : la fonction '%s' attend %d paramètres, mais %d ont été fournis.\n",
-            fonctionAppelee->nom, fonctionAppelee->nbParametres, nombreParametres);
-        return false;
-    }
-    return true;
-}
-
-bool verifierDeclarationFonction(fonction* fonction) {
-    // Vérification du type de la fonction
-    printf("\nnom de la fonction : %s\n", fonction->nom);
-    printf("type de la fonction : %d\n", fonction->typeRetour);
-    printf("nb parametres de la fonction : %d\n", fonction->nbParametres);
-    printf("type de parametres de la fonction : %d\n", fonction->parametres);
-    if (firstLetterFunctionIsString(fonction->nom) == false) {
-        return false;
-    }
-    printf("type de la fonction : %d\n", fonction->typeRetour);
-    if (fonction->typeRetour != INTEGER && fonction->typeRetour != VOIDE) {
-        printf("Erreur de déclaration de fonction : le type de la fonction '%s' est invalide.\n", fonction->nom);
-        return false;
-    }
-    
-    // Vérification des paramètres de la fonction
-    for (int i = 0; i < fonction->nbParametres; i++) {
-        
-        // Vérification du nom du paramètre
-        char premiereLettre = fonction->parametres[i]->nom[0];
-        if (!isalpha(premiereLettre)) {
-            printf("Erreur de déclaration de fonction : le nom du paramètre '%s' de la fonction '%s' ne commence pas par une lettre.\n", fonction->parametres[i]->nom, fonction->nom);
-            return false;
-        }
-        
-        // Vérification du type du paramètre
-        if (fonction->parametres[i]->type != INTEGER) {
-            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' n'est pas un entier.\n", fonction->parametres[i]->nom, fonction->nom);
-            return false;
-        }
-    }
-    
-    return true;
 }
 
 
@@ -691,7 +659,6 @@ liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* 
         liste = addNoeudList(arbreGlobal->tableSymbole->fonction->declaration,prog->tableSymbole->fonction->declaration);
     }
     arbreDeclaration=addAllChild(arbreDeclaration, liste);
-    printf("nb fils : %d\n",arbreDeclaration->nb_fils);
     for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
         for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
             if (arbreDeclaration->fils[i]->fils[k]==NULL){
@@ -710,7 +677,7 @@ liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* 
                     }
                     if (strcmp(nomVariable, arbreDeclaration->fils[j]->fils[l]->tableSymbole->name) == 0) {
                         char* message = malloc(100 * sizeof(char));
-                        sprintf(message, "la variable '%s' est déjà déclarée", nomVariable);
+                        sprintf(message, "la variable '%s' est déjà déclarée.", nomVariable);
                         message = realloc(message, strlen(message) * sizeof(char));
                         listeError = addNewError(listeError, message, arbreDeclaration->fils[j]->fils[l]->tableSymbole->line);
                         arbreDeclaration->fils[j]->fils[l]=NULL;
@@ -729,6 +696,52 @@ liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* 
         }
     }
     return listeError;
+}
+
+bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres) {
+    if (fonctionAppelee->nbParametres != nombreParametres) {
+        printf("Erreur : la fonction '%s' attend %d paramètres, mais %d ont été fournis.\n",
+            fonctionAppelee->nom, fonctionAppelee->nbParametres, nombreParametres);
+        return false;
+    }
+    return true;
+}
+
+bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError) {
+    // Vérification du type de la fonction
+    printf("nom de la fonction : %s\n", fonction->nom);
+    printf("type de la fonction : %d\n", fonction->typeRetour);
+    printf("nb parametres de la fonction : %d\n", fonction->nbParametres);
+    printf("type de parametres de la fonction : %d\n", fonction->parametres);
+    if (firstLetterFunctionIsString(fonction->nom) == false) {
+        return false;
+    }
+    printf("type de la fonction : %d\n", fonction->typeRetour);
+    if (fonction->typeRetour != INTEGER && fonction->typeRetour != VOIDE) {
+        printf("Erreur de déclaration de fonction : le type de la fonction '%s' est invalide.\n", fonction->nom);
+        return false;
+    }
+    
+    // Vérification des paramètres de la fonction
+    for (int i = 0; i < fonction->nbParametres; i++) {
+        
+        // Vérification du nom du paramètre
+        char premiereLettre = fonction->parametres[i]->nom[0];
+        if (!isalpha(premiereLettre)) {
+            char* message = malloc(100 * sizeof(char));
+            sprintf(message, "Erreur de déclaration de fonction : le nom du paramètre '%s' de la fonction '%s' ne commence pas par une lettre.\n", fonction->parametres[i]->nom, fonction->nom);
+            message = realloc(message, strlen(message) * sizeof(char));
+            return false;
+        }
+        
+        // Vérification du type du paramètre
+        if (fonction->parametres[i]->type != INTEGER) {
+            printf("Erreur de déclaration de fonction : le type du paramètre '%s' de la fonction '%s' n'est pas un entier.\n", fonction->parametres[i]->nom, fonction->nom);
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {

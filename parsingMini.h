@@ -32,8 +32,8 @@ typedef struct {
     char* nom;
     NoeudType typeRetour;
     liste_noeud* declaration;
-    Parametre **parametres; // tableau de pointeurs vers les parametres
     int nbParametres;
+    Parametre **parametres;
 } fonction;
 
 typedef struct {
@@ -145,7 +145,7 @@ bool varTypeIsIntOrIntArray(noeud* n);
 bool functionIsDeclared(noeud* n, char* nameFunction);
 
 // verif global sur fonction 
-bool verifierDeclarationFonction(fonction* fonction);
+bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError);
 
 //compare le nombre de parametres de la fonction appelée avec le nombre de parametres de la fonction déclarée
 bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres);
