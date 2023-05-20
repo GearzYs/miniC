@@ -189,8 +189,13 @@ appel	:
 ;
 variable	:	
 		IDENTIFICATEUR  {$$ = creerNoeud($1);}
-	|	variable '[' expression ']' {$$ = creerNoeud("TAB");
-									$$ = appendChild2($$,$1,$3);}
+	|	variable '[' expression ']' {printf("Variable %s\n",$1->val);
+										if (strcmp($1->val,"TAB")==0){
+										$$ = appendChild1($$,$3);}
+									else{
+										$$ = creerNoeud("TAB");
+										$$ = appendChild2($$,$1,$3);}
+									}
 ;
 expression	:	
 		'(' expression ')'	{$$ = $2;}                      

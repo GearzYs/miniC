@@ -617,9 +617,9 @@ void afficherError(error* error){
 
 bool afficherErrors(liste_error* liste){
     if (liste == NULL) {
-        printf("Aucune erreur trouvée.\n");
         return false;
     }
+    printf("Nombre d'erreur(s) : %d\n", liste->nb_error);
     for (int i = 0; i < liste->nb_error; i++) {
         afficherError(liste->liste_error[i]);
     }
@@ -707,7 +707,165 @@ bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres) {
     return true;
 }
 
-bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError) {
+
+noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {
+    if (noeudCourant == NULL) {
+        return NULL;
+    }
+
+    if (noeudCourant->type == FONCTION && strcmp(noeudCourant->tableSymbole->name, nomFonction) == 0) {
+        return noeudCourant;
+    }
+
+    for (int i = 0; i < noeudCourant->nb_fils; i++) {
+        noeud* resultat = rechercherFonction(noeudCourant->fils[i], nomFonction);
+        if (resultat != NULL) {
+            return resultat;
+        }
+    }
+
+    return NULL;
+}
+
+liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
+    noeud* arbreFonctions = creerNoeud("arbreFonctions");
+    liste_noeud* listeFonctions = n->tableSymbole->fonction->declaration;
+    arbreFonctions = addAllChild(arbreFonctions, listeFonctions);
+    
+    for (int i = 0; i < arbreFonctions->nb_fils; i++) {
+        noeud* fonction = arbreFonctions->fils[i];
+        char* nomFonction = fonction->tableSymbole->name;
+        
+        // Vérifier si la fonction est unique
+        for (int j = 0; j < arbreFonctions->nb_fils; j++) {
+            if (i == j) {
+                continue;
+            }
+            noeud* autreFonction = arbreFonctions->fils[j];
+            if (strcmp(nomFonction, autreFonction->tableSymbole->name) == 0) {
+                char* message = malloc(100 * sizeof(char));
+                sprintf(message, "la fonction '%s' est déjà déclarée.", nomFonction);
+                message = realloc(message, strlen(message) * sizeof(char));
+                liste = addNewError(liste, message, autreFonction->tableSymbole->line);
+                break;
+            }
+        }
+        
+        // Vérifier le type de retour de la fonction
+        /*si il n'y a pas de return => la fonction doit être void
+        si le return n'a pas de fils => la fonction doit être void
+        sinon, si le fils de return est une fonction => verifier type de la fonction return si c'est pareil que la fonction en train d'être analysé
+        sinon => int*/ 
+        NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
+        if (typeRetour == INTEGER){
+            for (int z=0 ; z<fonction->nb_fils; z++){
+                if (fonction->fils[z]->type==RETURN){
+                    if (fonction->fils[z]->nb_fils==0){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, fonction->tableSymbole->line);
+                    }
+                    else if (fonction->fils[z]->fils[0]->type==APPELFONCTION){
+                        char* nomFonctionReturn = fonction->fils[z]->fils[0]->val;
+                        noeud* fonctionReturn = rechercherFonction(n, nomFonctionReturn);
+                        for (int k=0; k<fonctionReturn->nb_fils; k++){
+                            if (fonctionReturn->fils[k]->type==RETURN){
+                                if (fonctionReturn->fils[k]->nb_fils==0){
+                                    char* message = malloc(100 * sizeof(char));
+                                    sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);
+                                    message = realloc(message, strlen(message) * sizeof(char));
+                                    liste = addNewError(liste, message, fonction->tableSymbole->line);
+                                }
+                                else if (fonctionReturn->fils[k]->fils[0]->tableSymbole->typeu!=INTEGER){
+                                    char* message = malloc(100 * sizeof(char));
+                                    sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);
+                                    message = realloc(message, strlen(message) * sizeof(char));
+                                    liste = addNewError(liste, message, fonction->tableSymbole->line);
+                                }
+                            }
+                        }
+                    }
+                    else if (fonction->fils[z]->fils[0]->tableSymbole->typeu!=INTEGER){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, fonction->tableSymbole->line);
+                    }
+                } 
+            }
+        } else if (typeRetour == VOIDE){
+            for (int z=0 ; z<fonction->nb_fils; z++){
+                if (fonction->fils[z]->type==RETURN){
+                    if (fonction->fils[z]->nb_fils==0){
+                        continue;
+                    }
+                    else if (fonction->fils[z]->fils[0]->type==APPELFONCTION){
+                        char* nomFonctionReturn = fonction->fils[z]->fils[0]->val;
+                        noeud* fonctionReturn = rechercherFonction(n, nomFonctionReturn);
+                        for (int k=0; k<fonctionReturn->nb_fils; k++){
+                            if (fonctionReturn->fils[k]->type==RETURN){
+                                if (fonctionReturn->fils[k]->nb_fils==0){
+                                    continue;
+                                }
+                                else if (fonctionReturn->fils[k]->fils[0]->tableSymbole->typeu!=VOIDE){
+                                    char* message = malloc(100 * sizeof(char));
+                                    sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);
+                                    message = realloc(message, strlen(message) * sizeof(char));
+                                    liste = addNewError(liste, message, fonction->tableSymbole->line);
+                                }
+                            }
+                        }
+                    }
+                    else if (fonction->fils[z]->fils[0]->tableSymbole->typeu!=VOIDE){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, fonction->tableSymbole->line);
+                    }
+                } 
+            }
+        }
+        
+        // Vérifier les paramètres de la fonction
+        int nbParametres = fonction->tableSymbole->fonction->nbParametres;
+        Parametre** parametres = fonction->tableSymbole->fonction->parametres;
+        for (int j = 0; j < nbParametres; j++) {
+            Parametre* parametre = parametres[j];
+            if (parametre->type == APPELFONCTION) {
+                char* nomParametre = parametre->nom;
+                noeud* fonctionAppel = rechercherFonction(n, nomParametre);
+                if (fonctionAppel == NULL) {
+                    char* message = malloc(100 * sizeof(char));
+                    sprintf(message, "la fonction '%s' utilisée comme paramètre dans la fonction '%s' n'est pas déclarée", nomParametre, nomFonction);
+                    message = realloc(message, strlen(message) * sizeof(char));
+                    liste = addNewError(liste, message, fonction->tableSymbole->line);
+                } else {
+                    int nbParametresAttendus = fonctionAppel->tableSymbole->fonction->nbParametres;
+                    if (nbParametres != nbParametresAttendus) {
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "la fonction '%s' utilisée comme paramètre dans la fonction'%s' attend %d paramètres, mais %d paramètres ont été fournis dans la fonction '%s'", nomParametre, nbParametresAttendus, nbParametres, nomFonction);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, fonction->tableSymbole->line);
+                        }
+                        // Vérifier le type de retour de la fonction appelée
+                        NoeudType typeRetourFonction = fonctionAppel->tableSymbole->fonction->typeRetour;
+                        if (typeRetourFonction != INTEGER) {
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "le type de retour de la fonction '%s' utilisée comme paramètre dans la fonction '%s' est incorrect", nomParametre, nomFonction);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, fonction->tableSymbole->line);
+                    }
+                }
+            }
+        }
+    }
+    return liste;
+}
+
+
+
+/* bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError) {
     // Vérification du type de la fonction
     printf("nom de la fonction : %s\n", fonction->nom);
     printf("type de la fonction : %d\n", fonction->typeRetour);
@@ -742,27 +900,7 @@ bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError) {
     }
     
     return true;
-}
-
-noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {
-    if (noeudCourant == NULL) {
-        return NULL;
-    }
-
-    if (noeudCourant->type == FONCTION && strcmp(noeudCourant->tableSymbole->name, nomFonction) == 0) {
-        return noeudCourant;
-    }
-
-    for (int i = 0; i < noeudCourant->nb_fils; i++) {
-        noeud* resultat = rechercherFonction(noeudCourant->fils[i], nomFonction);
-        if (resultat != NULL) {
-            return resultat;
-        }
-    }
-
-    return NULL;
-}
-
+} */
 
 void verifierFonctions(noeud* prog) {
     noeud* listeFonctions = prog->fils[1];

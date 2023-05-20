@@ -145,7 +145,7 @@ bool varTypeIsIntOrIntArray(noeud* n);
 bool functionIsDeclared(noeud* n, char* nameFunction);
 
 // verif global sur fonction 
-bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError);
+//bool verifierDeclarationFonction(fonction* fonction, liste_error* listeError);
 
 //compare le nombre de parametres de la fonction appelée avec le nombre de parametres de la fonction déclarée
 bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres);
@@ -200,3 +200,6 @@ void afficherError(error* error);
 
 // concatene 2 listes d'erreurs
 liste_error* addNewListError(liste_error* error1, liste_error* error2);
+
+// verif si une fonction est déclarée
+liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste);
