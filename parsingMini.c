@@ -372,7 +372,7 @@ void generateDotFile(liste_noeud* listfunc){
   fprintf(f, "digraph G {\n");
   printf("Génération du fichier dot\n");
   for (int i = 0; i < listfunc->nb_noeud; i++) {
-    if(listfunc->liste_noeud[i]!= NULL){
+    if(listfunc->liste_noeud[i]!= NULL && strncmp(listfunc->liste_noeud[i]->val, "EXTERN",6) != 0){
         arbreToDot(listfunc->liste_noeud[i], &COMPTEUR, f);
     }
   }
@@ -440,7 +440,6 @@ noeud* newFunction(noeud* n, char* nameFunction, noeud* typeFunction, liste_noeu
         n->tableSymbole->fonction->parametres[i] = malloc(sizeof(Parametre));
         n->tableSymbole->fonction->parametres[i]->type = parametres->liste_noeud[i]->tableSymbole->typeu;
         n->tableSymbole->fonction->parametres[i]->nom = parametres->liste_noeud[i]->val; 
-        n=appendChild1(n,parametres->liste_noeud[i]);
     }
     return n;
 }
@@ -728,25 +727,30 @@ noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {
 }
 
 liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
-    noeud* arbreFonctions = creerNoeud("arbreFonctions");
-    liste_noeud* listeFonctions = n->tableSymbole->fonction->declaration;
-    arbreFonctions = addAllChild(arbreFonctions, listeFonctions);
+    afficherArbre(n);
     
-    for (int i = 0; i < arbreFonctions->nb_fils; i++) {
-        noeud* fonction = arbreFonctions->fils[i];
+    for (int i = 0; i < n->nb_fils; i++) {
+        if (n->fils[i] == NULL) {
+            continue;
+        }
+        noeud* fonction = n->fils[i];
         char* nomFonction = fonction->tableSymbole->name;
-        
         // Vérifier si la fonction est unique
-        for (int j = 0; j < arbreFonctions->nb_fils; j++) {
+        for (int j = 0; j < n->nb_fils; j++) {
+            if (n->fils[j] == NULL) {
+                continue;
+            }
             if (i == j) {
                 continue;
             }
-            noeud* autreFonction = arbreFonctions->fils[j];
+            printf("nomFonction : %s\n", nomFonction);
+            noeud* autreFonction = n->fils[j];
             if (strcmp(nomFonction, autreFonction->tableSymbole->name) == 0) {
                 char* message = malloc(100 * sizeof(char));
                 sprintf(message, "la fonction '%s' est déjà déclarée.", nomFonction);
                 message = realloc(message, strlen(message) * sizeof(char));
                 liste = addNewError(liste, message, autreFonction->tableSymbole->line);
+                n->fils[j]=NULL;
                 break;
             }
         }
@@ -759,7 +763,9 @@ liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
         NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
         if (typeRetour == INTEGER){
             for (int z=0 ; z<fonction->nb_fils; z++){
+                printf("nb_fils : %d\n", fonction->nb_fils);
                 if (fonction->fils[z]->type==RETURN){
+                    printf("RETUUURN\n");
                     if (fonction->fils[z]->nb_fils==0){
                         char* message = malloc(100 * sizeof(char));
                         sprintf(message, "le type de retour de la fonction '%s' est incorrect", nomFonction);

@@ -45,6 +45,7 @@ programme	:
 											fonction=addAllChild(fonction,$2);
 											$$=appendChild2($$,declaration,fonction);
 											listeError=checkInBlock($$,$$->fils[0],listeError);
+											listeError=verifierDeclarationFonction($$->fils[1],listeError);
 											if(afficherErrors(listeError)){
 												exit(1);
 											}
@@ -91,7 +92,7 @@ fonction	:
 																								if ($5->nb_noeud > 0) {
 																									//$$=newFunction($$,$3,$2,$5);
 																									for(int i = 0; i < $5->nb_noeud; i++){
-																										$$ = appendChild1($$,$5->liste_noeud[i]);
+																										$$=newFunction($$,$3,$2,$5,yylineno);
 																									}
 																								}}
 ;
@@ -130,10 +131,14 @@ instruction	:
 ;
 iteration	:	
 		FOR '(' affectation ';' condition ';' affectation ')' instruction 	{$$= creerNoeud("FOR");
-																			if (strcmp($9->val,"BLOC")==1){
-																				$$ = appendChild4($$,$3,$5,$7,$9);
+																			if (strcmp($9->val,"BLOC")==0 && $9->nb_fils < 2){
+																				$$ = appendChild3($$,$3,$5,$7);
+																				for(int i = 0; i < $9->nb_fils; i++){
+																					$$ = appendChild1($$,$9->fils[i]);
+																				}
+																				
 																			} else {
-																				$$ = appendChild4($$,$3,$5,$7,$9->fils[0]);
+																				$$ = appendChild4($$,$3,$5,$7,$9);
 																			}}
 	|	WHILE '(' condition ')' instruction {$$= creerNoeud("WHILE");
 											$$ = appendChild2($$,$3,$5);}
