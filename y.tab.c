@@ -640,7 +640,7 @@ static YYINT  *yylexp = 0;
 
 static YYINT  *yylexemes = 0;
 #endif /* YYBTYACC */
-#line 323 "miniC.y"
+#line 325 "miniC.y"
 extern int yylineno;
 
 void yyerror(char *s){
@@ -1776,63 +1776,65 @@ case 60:
 #line 298 "miniC.y"
 	{
 									yyval.noeud = creerNoeud("&&");
+									yyval.noeud->type = OPERATEUR;
 									yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);
 	}
-#line 1782 "y.tab.c"
+#line 1783 "y.tab.c"
 break;
 case 61:
-#line 302 "miniC.y"
+#line 303 "miniC.y"
 	{
 									yyval.noeud = creerNoeud("||");
+									yyval.noeud->type = OPERATEUR;
 									yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);
 	}
-#line 1790 "y.tab.c"
+#line 1792 "y.tab.c"
 break;
 case 62:
-#line 306 "miniC.y"
+#line 308 "miniC.y"
 	{yyval.noeud = yystack.l_mark[-1].noeud;}
-#line 1795 "y.tab.c"
+#line 1797 "y.tab.c"
 break;
 case 63:
-#line 307 "miniC.y"
+#line 309 "miniC.y"
 	{
 										yyval.noeud = creerNoeud(yystack.l_mark[-1].id);
 										yyval.noeud->type = OPERATEUR;
 										yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);
 	}
-#line 1804 "y.tab.c"
+#line 1806 "y.tab.c"
 break;
 case 64:
-#line 314 "miniC.y"
+#line 316 "miniC.y"
 	{yyval.id = "<"; }
-#line 1809 "y.tab.c"
+#line 1811 "y.tab.c"
 break;
 case 65:
-#line 315 "miniC.y"
+#line 317 "miniC.y"
 	{yyval.id = ">"; }
-#line 1814 "y.tab.c"
+#line 1816 "y.tab.c"
 break;
 case 66:
-#line 316 "miniC.y"
+#line 318 "miniC.y"
 	{yyval.id = ">="; }
-#line 1819 "y.tab.c"
+#line 1821 "y.tab.c"
 break;
 case 67:
-#line 317 "miniC.y"
+#line 319 "miniC.y"
 	{yyval.id = "<="; }
-#line 1824 "y.tab.c"
+#line 1826 "y.tab.c"
 break;
 case 68:
-#line 318 "miniC.y"
+#line 320 "miniC.y"
 	{yyval.id = "=="; }
-#line 1829 "y.tab.c"
+#line 1831 "y.tab.c"
 break;
 case 69:
-#line 319 "miniC.y"
+#line 321 "miniC.y"
 	{yyval.id = "!="; }
-#line 1834 "y.tab.c"
-break;
 #line 1836 "y.tab.c"
+break;
+#line 1838 "y.tab.c"
     default:
         break;
     }

@@ -369,7 +369,7 @@ void arbreToDot(noeud* n, int* COMPTEUR, FILE* fp) {
 
 void generateDotFile(liste_noeud* listfunc){
   FILE* f;
-  f = fopen("arbre.dot", "a");
+  f = fopen("add.dot", "a");
   fprintf(f, "digraph G {\n");
   printf("Génération du fichier dot\n");
   for (int i = 0; i < listfunc->nb_noeud; i++) {
@@ -380,7 +380,7 @@ void generateDotFile(liste_noeud* listfunc){
   fprintf(f, "}");}
 
 void clearFile(){
-  FILE *f = fopen("arbre.dot", "w");
+  FILE *f = fopen("add.dot", "w");
   fclose(f);
 }
 
@@ -839,7 +839,6 @@ liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, noeud* bl
 }
 
 liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
-    afficherArbre(n);
     for (int i = 0; i < n->nb_fils; i++) {
         if (n->fils[i] == NULL) {
             continue;
@@ -914,8 +913,11 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, noeud* 
     if (n == NULL) {
         return listeError;
     }
-    if(n->type == AFFECTATION && (strcmp(n->val,"TAB")==0)){
-        if ((n->fils[0]->tableSymbole->typeu == INTEGER) && (n->fils[1]->type != CONSTANTEE)) {
+    if(n->type == OPERATEUR){
+        verifierExpressionsArithmetiques(n, prog, bloc, listeError);
+    }
+    if(n->type == AFFECTATION && strcmp(n->val,"TAB")!=0){
+        if ((n->fils[0]->tableSymbole->typeu == INTEGER) && (n->fils[1]->type != CONSTANTEE) && (strcmp(n->fils[0]->val,"TAB")!=0)) {
             if (rechercherVariable(bloc,n->fils[0]->val,arbreGlobal) == NULL) {
                 char* message = malloc(100 * sizeof(char));
                 sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[0]->val);

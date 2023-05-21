@@ -297,10 +297,12 @@ condition	:
 								$$ = appendChild1($$,$3);}
 	|	condition LAND condition %prec REL {
 									$$ = creerNoeud("&&");
+									$$->type = OPERATEUR;
 									$$ = appendChild2($$,$1,$3);
 	}
 	|	condition LOR condition %prec REL {
 									$$ = creerNoeud("||");
+									$$->type = OPERATEUR;
 									$$ = appendChild2($$,$1,$3);
 	}
 	|	'(' condition ')' {$$ = $2;}
