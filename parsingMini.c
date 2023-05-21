@@ -899,9 +899,7 @@ noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal) {
     arbreDeclaration=addAllChild(arbreDeclaration, liste);
 
     for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
-        printf("arbreDeclaration->fils[i]->val : %s\n",arbreDeclaration->fils[i]->val);
         for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
-            printf("arbreDeclaration->fils[i]->fils[k]->val : %s\n",arbreDeclaration->fils[i]->fils[k]->val);
             noeud* declaration = arbreDeclaration->fils[i]->fils[k];
             char* nomVariable = declaration->tableSymbole->name;
             if (strcmp(nomVariable, varName) == 0) {
@@ -916,7 +914,7 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, noeud* 
     if (n == NULL) {
         return listeError;
     }
-    if(n->type == AFFECTATION){
+    if(n->type == AFFECTATION && (strcmp(n->val,"TAB")==0)){
         if ((n->fils[0]->tableSymbole->typeu == INTEGER) && (n->fils[1]->type != CONSTANTEE)) {
             if (rechercherVariable(bloc,n->fils[0]->val,arbreGlobal) == NULL) {
                 char* message = malloc(100 * sizeof(char));
@@ -1037,28 +1035,7 @@ noeud* makeSwitchPretty(noeud* n){
         afficherErrors(listeError);
         exit(1);
     }
-    /*
-    for (int i=0;i<n->nb_fils;i++){
-        if (strcmp("CASE",n->fils[i]->val)==0){
-            for (int j=0;j<n->fils[i]->nb_fils;j++){
-                if (i==j){
-                    continue;
-                }
-                if (strcmp("CASE",n->fils[i]->val)==0){
-                    if(atoi(n->fils[i]->fils[0]->val)==atoi(n->fils[j]->fils[0]->val)){
-                        char* message = malloc(100 * sizeof(char));
-                        sprintf(message, "Il ne peut pas y avoir deux CASE avec la même valeur.");
-                        message = realloc(message, strlen(message) * sizeof(char));
-                        listeError = addNewError(listeError, message, n->tableSymbole->line);
-                        afficherErrors(listeError);
-                        exit(1);
-                    }
-                }
-            }
-        }
-    }*/
-
-    for (int i = 0; i<n->nb_fils;i++){
+        for (int i = 0; i<n->nb_fils;i++){
         if (strcmp("CASE",n->fils[i]->val)==0 || strcmp("DEFAULT",n->fils[i]->val)==0){
             indice = i;
         }
@@ -1071,4 +1048,27 @@ noeud* makeSwitchPretty(noeud* n){
             }
         }
     }
+
+    for (int i=0;i<n->nb_fils;i++){
+        if (n->fils[i]!=NULL && strcmp("CASE",n->fils[i]->val)==0){
+            for (int j=0;j<n->fils[i]->nb_fils;j++){
+                if (i==j){
+                    continue;
+                }
+                if (n->fils[j]!=NULL && strcmp("CASE",n->fils[j]->val)==0){
+                    printf("val : %s\n", n->fils[j]->fils[0]->val);
+                    printf("val : %s\n", n->fils[i]->fils[0]->val);
+                    if(strcmp(n->fils[i]->fils[0]->val,n->fils[j]->fils[0]->val)==0){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "Il ne peut pas y avoir deux CASE avec la même valeur.");
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        listeError = addNewError(listeError, message, n->tableSymbole->line);
+                        afficherErrors(listeError);
+                        exit(1);
+                    }
+                }
+            }
+        }
+    }
+    return n;
 }

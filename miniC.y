@@ -306,6 +306,7 @@ condition	:
 	|	'(' condition ')' {$$ = $2;}
 	|	expression binary_comp expression {
 										$$ = creerNoeud($2);
+										$$->type = OPERATEUR;
 										$$ = appendChild2($$,$1,$3);
 	}
 ;
