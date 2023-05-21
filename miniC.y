@@ -80,20 +80,15 @@ fonction	:
 																								sprintf(funcname,"%s, %s",$2,$1->val);
 																								$$= creerNoeud(funcname);
 																								$$->type = FONCTION;
-																								if ($4->nb_noeud > 0){
-																									$$=newFunction($$,$2,$1,$4,yylineno);
-																									$$->type = FONCTION;
-																								}
+																								$$=newFunction($$,$2,$1,$4,yylineno);
 																								$$ = appendChild1($$,$6);
 																								}
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {char* funcname = (char * ) malloc(20 * sizeof(char));
 																								sprintf(funcname,"EXTERN %s, %s",$3,$2->val);
 																								$$= creerNoeud(funcname);
-																								if ($5->nb_noeud > 0) {
-																									//$$=newFunction($$,$3,$2,$5);
-																									$$=newFunction($$,$3,$2,$5,yylineno);
-																									$$->type = EXTERNE;
-																								}}
+																								$$->type = EXTERNE;
+																								$$=newFunction($$,$3,$2,$5,yylineno);
+																								}
 ;
 type	:	
 		VOID {$$ = creerNoeud("void");}
