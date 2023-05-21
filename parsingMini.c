@@ -633,7 +633,7 @@ bool afficherErrors(liste_error* liste){
         }
         else{
         listeError = verifierDeclarations(n,arbreGlobal->fils[0],listeError);
-        listeError = rechercherAffect(arbreGlobal,arbreGlobal->fils[0],n,listeError);
+        listeError = rechercherAffect(arbreGlobal,arbreGlobal->fils[0],n,n,listeError);
         }
     }
     else{   
@@ -772,57 +772,67 @@ liste_error* verifierAppelFonction(noeud* n, noeud* racine, liste_error* liste){
     return liste;
 }
 
-liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_error* liste) {
+liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, noeud* bloc, liste_error* liste) {
     if (n == NULL) {
         return liste;
     }
 
     if (n->type == OPERATEUR) {
-        if (n->fils[1]->type == APPELFONCTION) {
-            noeud* fonction = rechercherFonction(racine, n->fils[1]->val);
-            if (fonction != NULL) {
-                NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
-                if (strcmp(fonction->tableSymbole->name,"main")==0){
+        for (int j=0; j<n->nb_fils; j++){
+            if (n->fils[j]->type == APPELFONCTION) {
+                noeud* fonction = rechercherFonction(racine->fils[1], n->fils[1]->val);
+                if (fonction != NULL) {
+                    NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
+                    if (strcmp(fonction->tableSymbole->name,"main")==0){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "la fonction '%s' ne peut pas être appelée dans une expression arithmétique.", n->fils[j]->val);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, n->fils[j]->tableSymbole->line);
+                        afficherErrors(liste);
+                        exit(1);
+                    }
+                    if (typeRetour != INTEGER) {
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "la fonction '%s' ne retourne pas un type INT.", n->fils[j]->val);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, n->fils[j]->tableSymbole->line);
+                        afficherErrors(liste);
+                        exit(1);
+                    }
+                } else {
                     char* message = malloc(100 * sizeof(char));
-                    sprintf(message, "la fonction '%s' ne peut pas être appelée dans une expression arithmétique.", n->fils[1]->val);
+                    sprintf(message, "la fonction '%s' n'est pas déclarée.", n->fils[j]->val);
                     message = realloc(message, strlen(message) * sizeof(char));
-                    liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
-                    afficherErrors(liste);
-                    exit(1);
-                }
-                if (typeRetour != INTEGER) {
-                    char* message = malloc(100 * sizeof(char));
-                    sprintf(message, "la fonction '%s' ne retourne pas un type INT.", n->fils[1]->val);
-                    message = realloc(message, strlen(message) * sizeof(char));
-                    liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
+                    liste = addNewError(liste, message, n->fils[j]->tableSymbole->line);
                     afficherErrors(liste);
                     exit(1);
                 }
             } else {
-                char* message = malloc(100 * sizeof(char));
-                        printf("nom racine : %s\n", racine->val);
-
-                sprintf(message, "la fonction '%s' n'est pas déclarée.", n->fils[1]->val);
-                message = realloc(message, strlen(message) * sizeof(char));
-                liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
-                afficherErrors(liste);
-                exit(1);
-            }
-        } else {
-            NoeudType typeValeur = n->fils[1]->tableSymbole->typeu;
-            if (typeValeur != INTEGER) {
-                char* message = malloc(100 * sizeof(char));
-                sprintf(message, "la variable '%s' doit être affectée avec une valeur de type INT.", n->fils[1]->val);
-                message = realloc(message, strlen(message) * sizeof(char));
-                liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
-                afficherErrors(liste);
-                exit(1);
+                NoeudType typeValeur = n->fils[j]->tableSymbole->typeu;
+                if (typeValeur != INTEGER) {
+                    char* message = malloc(100 * sizeof(char));
+                    sprintf(message, "la variable '%s' doit être affectée avec une valeur de type INT.", n->fils[j]->val);
+                    message = realloc(message, strlen(message) * sizeof(char));
+                    liste = addNewError(liste, message, n->fils[j]->tableSymbole->line);
+                    afficherErrors(liste);
+                    exit(1);
+                }
+                else if (n->fils[j]->type != CONSTANTEE && n->fils[j]->type != OPERATEUR){
+                    if (rechercherVariable(bloc,n->fils[j]->val,racine->fils[0])==NULL){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[j]->val);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        liste = addNewError(liste, message, n->fils[j]->tableSymbole->line);
+                        afficherErrors(liste);
+                        exit(1);
+                    }
+                }
             }
         }
     }
     
     for (int i = 0; i < n->nb_fils; i++) {
-        verifierExpressionsArithmetiques(n->fils[i], racine, liste);
+        verifierExpressionsArithmetiques(n->fils[i], racine, bloc, liste);
     }
 
     return liste;
@@ -874,22 +884,8 @@ liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
         }
     }
     verifierAppelFonction(n, n, liste);
-    verifierExpressionsArithmetiques(n, n, liste);
     return liste;
 }
-
-/*
-En entrée :
-Noeud racine, noeud n pour la recursion et listeerror
-Sortie liste error
-Si tu tombe sur type affectation
-Vérifier si fils[0] est une variable déclarée
-Les variables décalées seront dans racine fils[0]
-N’oublie pas que les déclarations peuvent être un noeud avec plusieurs fils
-Regarde verifierDeclaration pour s’en inspirer
-Et pour fils [1] si CONSTANTE c’est op
-Si fonction Check si type retour int
-*/
 
 noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal) {
     noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
@@ -903,7 +899,9 @@ noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal) {
     arbreDeclaration=addAllChild(arbreDeclaration, liste);
 
     for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
+        printf("arbreDeclaration->fils[i]->val : %s\n",arbreDeclaration->fils[i]->val);
         for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
+            printf("arbreDeclaration->fils[i]->fils[k]->val : %s\n",arbreDeclaration->fils[i]->fils[k]->val);
             noeud* declaration = arbreDeclaration->fils[i]->fils[k];
             char* nomVariable = declaration->tableSymbole->name;
             if (strcmp(nomVariable, varName) == 0) {
@@ -914,14 +912,13 @@ noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal) {
     return NULL;
 }
 
-liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_error* listeError){
+liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, noeud* bloc, liste_error* listeError){
     if (n == NULL) {
         return listeError;
     }
     if(n->type == AFFECTATION){
-        printf("Val : %s\n", n->fils[0]->val);
-        if (n->fils[0]->tableSymbole->typeu == INTEGER || n->fils[0]->type == CONSTANTEE) {
-            if (rechercherVariable(prog,n->fils[0]->val,arbreGlobal) == NULL) {
+        if ((n->fils[0]->tableSymbole->typeu == INTEGER) && (n->fils[1]->type != CONSTANTEE)) {
+            if (rechercherVariable(bloc,n->fils[0]->val,arbreGlobal) == NULL) {
                 char* message = malloc(100 * sizeof(char));
                 sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[0]->val);
                 message = realloc(message, strlen(message) * sizeof(char));
@@ -930,9 +927,9 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_e
                 exit(1);
             }
             if (n->fils[1]->type == OPERATEUR) {
-                printf("NOM RACINE : %s\n", arbreGlobal->val);
-                verifierExpressionsArithmetiques(n, prog, listeError);
-            }
+                verifierExpressionsArithmetiques(n, prog, bloc, listeError);        
+            }       
+
             if (n->fils[1]->type == FONCTION && n->fils[1]->tableSymbole->fonction->typeRetour != INTEGER) {
                 char* message = malloc(100 * sizeof(char));
                 sprintf(message, "L'affectation ne peut pas se faire avec la fonction '%s' de type void.", n->fils[0]->val);
@@ -940,8 +937,8 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_e
                 listeError = addNewError(listeError, message, n->fils[0]->tableSymbole->line);
                 afficherErrors(listeError);
             }
-            if (n->fils[1]->tableSymbole->typeu == INTEGER || n->fils[1]->type == CONSTANTEE) {
-                if (rechercherVariable(prog,n->fils[1]->val,arbreGlobal) == NULL) {
+            if ((n->fils[1]->tableSymbole->typeu == INTEGER) && (n->fils[1]->type != CONSTANTEE)) {
+                if (rechercherVariable(bloc,n->fils[0]->val,arbreGlobal) == NULL) {
                 char* message = malloc(100 * sizeof(char));
                 sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[0]->val);
                 message = realloc(message, strlen(message) * sizeof(char));
@@ -954,6 +951,9 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_e
                 return listeError;
             }
         }
+        else if (n->fils[0]->tableSymbole->typeu == INTEGER){
+            return listeError;
+        }
         else{
             printf("val : %s\n", n->fils[0]->val);
             char* message = malloc(100 * sizeof(char));
@@ -965,7 +965,7 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_e
         }
     }
     for (int i=0;i<n->nb_fils;i++){
-        rechercherAffect(prog,arbreGlobal,n->fils[i],listeError);
+        rechercherAffect(prog,arbreGlobal,n->fils[i],bloc,listeError);
     }
     
     return listeError;
@@ -1018,4 +1018,57 @@ liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* 
         }
     }
     return listeError;
+}
+
+noeud* makeSwitchPretty(noeud* n){
+    int indice=-1;
+    int compteur=0;
+    liste_error* listeError = NULL;
+    for (int i = 0; i<n->nb_fils;i++){
+        if (strcmp("DEFAULT",n->fils[i]->val)==0){
+            compteur++;
+        }
+    }
+    if (compteur!=1){
+        char* message = malloc(100 * sizeof(char));
+        sprintf(message, "Il doit y avoir un seul DEFAULT dans un switch.");
+        message = realloc(message, strlen(message) * sizeof(char));
+        listeError = addNewError(listeError, message, n->tableSymbole->line);
+        afficherErrors(listeError);
+        exit(1);
+    }
+    /*
+    for (int i=0;i<n->nb_fils;i++){
+        if (strcmp("CASE",n->fils[i]->val)==0){
+            for (int j=0;j<n->fils[i]->nb_fils;j++){
+                if (i==j){
+                    continue;
+                }
+                if (strcmp("CASE",n->fils[i]->val)==0){
+                    if(atoi(n->fils[i]->fils[0]->val)==atoi(n->fils[j]->fils[0]->val)){
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "Il ne peut pas y avoir deux CASE avec la même valeur.");
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        listeError = addNewError(listeError, message, n->tableSymbole->line);
+                        afficherErrors(listeError);
+                        exit(1);
+                    }
+                }
+            }
+        }
+    }*/
+
+    for (int i = 0; i<n->nb_fils;i++){
+        if (strcmp("CASE",n->fils[i]->val)==0 || strcmp("DEFAULT",n->fils[i]->val)==0){
+            indice = i;
+        }
+        else{
+            if (indice!=-1){
+                n->fils[indice]->nb_fils++;
+                n->fils[indice]=realloc(n->fils[indice],sizeof(noeud)*n->fils[indice]->nb_fils);
+                n->fils[indice]->fils[n->fils[indice]->nb_fils-1]=n->fils[i];
+                n->fils[i]=NULL;
+            }
+        }
+    }
 }

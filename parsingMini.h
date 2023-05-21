@@ -218,13 +218,16 @@ liste_error* verifierTypeRetourVoid(noeud* n, noeud* fonction, NoeudType typeAtt
 bool ifNoReturn(noeud* n);
 
 // verif si le calclul est possible
-liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_error* liste);
+liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, noeud* bloc, liste_error* liste);
 
 // verif appel fonction
 liste_error* verifierAppelFonction(noeud* n, noeud* racine, liste_error* liste);
 
 //verif sur affectation de variable
-liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_error* listeError);
+liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n,noeud* bloc, liste_error* listeError);
 
 // recherche une variable 
 noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal);
+
+// verifie switch
+noeud* makeSwitchPretty(noeud* n);

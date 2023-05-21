@@ -1,16 +1,16 @@
+int toto;
 int i;
-int j;
 
 extern int printd( int i );
 
 extern void test();
 
 void main() {
-   for (i=0; i<10; i=i+1) {
-	if (i==5) break;
-   }
+   int j;
+   i=5;
+   i=6+j;
    printd(i);
    printd(i);
-   i=a;
+   toto = 6+2*4+3;
    return;
 }

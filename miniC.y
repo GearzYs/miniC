@@ -18,19 +18,21 @@ void yyerror (char *s);
 %token VOID INT 
 %token PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT 
 %token GEQ LEQ EQ NEQ
-%left PLUS MOINS
+
 %left MUL DIV
+%left PLUS MOINS
+
 %left LSHIFT RSHIFT
 %left BOR BAND
 %left LAND LOR
 %nonassoc THEN
 %nonassoc ELSE
-%left OP
+
 %left REL
 %start programme
 
 %token <id> WHILE FOR IF NOT IDENTIFICATEUR CONSTANTE BREAK RETURN DEFAULT CASE SWITCH EXTERN
-%type <id> binary_rel binary_comp binary_op 
+%type <id>  binary_comp 
 %type <noeud> condition selection saut iteration programme instruction bloc appel affectation expression fonction declaration declarateur type variable parm
 %type <liste_noeud> liste_fonctions liste_instructions liste_parms liste_expressions liste_declarations liste_declarateurs
 %%
@@ -147,6 +149,7 @@ selection	:
 															$$ = appendChild3($$,$3,$5,$7);}
 	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("SWITCH");
 												$$->type = SWITCHE;
+												makeSwitchPretty($5);
 												if (strcmp($5->val,"BLOC")==1){
 													$$ = appendChild2($$,$3,$5);
 												}
@@ -159,7 +162,7 @@ selection	:
 	|	CASE CONSTANTE ':' instruction {$$= creerNoeud("CASE");
 										noeud* constante = creerNoeud($2);
 										$$ = appendChild2($$,constante,$4);}
-	|	DEFAULT ':' instruction {$$= creerNoeud("default");
+	|	DEFAULT ':' instruction {$$= creerNoeud("DEFAULT");
 								$$ = appendChild1($$,$3);}
 ;
 saut	:	
@@ -207,9 +210,11 @@ appel	:
 													}
 ;
 variable	:	
-		IDENTIFICATEUR  {$$ = creerNoeud($1);}
-	|	variable '[' expression ']' {printf("Variable %s\n",$1->val);
-										if (strcmp($1->val,"TAB")==0){
+		IDENTIFICATEUR  {$$ = creerNoeud($1);
+						$$->tableSymbole->line = yylineno;
+						$$->tableSymbole->typeu = INTEGER;}
+	|	variable '[' expression ']' {
+									if (strcmp($1->val,"TAB")==0){
 										$$ = appendChild1($$,$3);}
 									else{
 										$$ = creerNoeud("TAB");
@@ -218,10 +223,38 @@ variable	:
 ;
 expression	:	
 		'(' expression ')'	{$$ = $2;}                      
-	|	expression binary_op expression %prec OP	{$$= creerNoeud($2);
-													$$->type=OPERATEUR;
-													$$->tableSymbole->typeu=INTEGER;
-													$$ = appendChild2($$,$1,$3);}
+	|	expression PLUS expression	{$$= creerNoeud("+");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression MOINS expression	{$$= creerNoeud("-");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression MUL expression	{$$= creerNoeud("*");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression DIV expression	{$$= creerNoeud("/");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression LSHIFT expression	{$$= creerNoeud("<<");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression RSHIFT expression	{$$= creerNoeud(">>");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression BAND expression	{$$= creerNoeud("&");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
+	|	expression BOR expression	{$$= creerNoeud("|");
+												$$->type=OPERATEUR;
+												$$->tableSymbole->typeu=INTEGER;
+												$$ = appendChild2($$,$1,$3);}
 	|	MOINS expression	{if ($2->type==CONSTANTEE){
 								char* temp = malloc(sizeof(char)*100);
 								sprintf(temp,"-%s", $2->val);
@@ -262,29 +295,19 @@ liste_expressions	:
 condition	:	
 		NOT '(' condition ')' {$$ = creerNoeud("NOT");
 								$$ = appendChild1($$,$3);}
-	|	condition binary_rel condition %prec REL {
-										$$ = creerNoeud($2);
-										$$ = appendChild2($$,$1,$3);
+	|	condition LAND condition %prec REL {
+									$$ = creerNoeud("&&");
+									$$ = appendChild2($$,$1,$3);
+	}
+	|	condition LOR condition %prec REL {
+									$$ = creerNoeud("||");
+									$$ = appendChild2($$,$1,$3);
 	}
 	|	'(' condition ')' {$$ = $2;}
 	|	expression binary_comp expression {
 										$$ = creerNoeud($2);
 										$$ = appendChild2($$,$1,$3);
 	}
-;
-binary_op	:	
-		PLUS  {$$ = "+"; }
-	|   MOINS	{$$ = "-"; }
-	|	MUL	{$$ = "*"; }
-	|	DIV	{$$ = "/"; }
-	|   LSHIFT	{$$ = "<<"; }
-	|   RSHIFT	{$$ = ">>"; }
-	|	BAND	{$$ = "&="; }
-	|	BOR	{$$ = "|="; }
-;
-binary_rel	:	
-		LAND {$$ = "&&"; }
-	|	LOR	{$$ = "||"; }
 ;
 binary_comp	:	
 		LT	{$$ = "<"; }
