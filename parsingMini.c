@@ -916,6 +916,16 @@ liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, noeud* 
     if(n->type == OPERATEUR){
         verifierExpressionsArithmetiques(n, prog, bloc, listeError);
     }
+    if(n->type == SWITCHE){
+        if (rechercherVariable(bloc,n->fils[0]->val,arbreGlobal)==NULL){
+            char* message = malloc(100 * sizeof(char));
+            sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[0]->val);
+            message = realloc(message, strlen(message) * sizeof(char));
+            listeError = addNewError(listeError, message, n->tableSymbole->line);
+            afficherErrors(listeError);
+            exit(1);
+        }
+    }
     if(n->type == AFFECTATION && strcmp(n->val,"TAB")!=0){
         if ((n->fils[0]->tableSymbole->typeu == INTEGER) && (n->fils[1]->type != CONSTANTEE) && (strcmp(n->fils[0]->val,"TAB")!=0)) {
             if (rechercherVariable(bloc,n->fils[0]->val,arbreGlobal) == NULL) {
@@ -1053,7 +1063,7 @@ noeud* makeSwitchPretty(noeud* n){
 
     for (int i=0;i<n->nb_fils;i++){
         if (n->fils[i]!=NULL && strcmp("CASE",n->fils[i]->val)==0){
-            for (int j=0;j<n->fils[i]->nb_fils;j++){
+            for (int j=0;j<n->nb_fils;j++){
                 if (i==j){
                     continue;
                 }

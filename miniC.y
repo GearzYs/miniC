@@ -148,6 +148,8 @@ selection	:
 	|	IF '(' condition ')' instruction ELSE instruction {$$= creerNoeud("IF");
 															$$ = appendChild3($$,$3,$5,$7);}
 	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("SWITCH");
+												$$->tableSymbole->line = yylineno;
+												$5->tableSymbole->line = yylineno;
 												$$->type = SWITCHE;
 												makeSwitchPretty($5);
 												if (strcmp($5->val,"BLOC")==1){
@@ -160,6 +162,7 @@ selection	:
 													}
 												}}
 	|	CASE CONSTANTE ':' instruction {$$= creerNoeud("CASE");
+										$$->tableSymbole->line = yylineno;
 										noeud* constante = creerNoeud($2);
 										$$ = appendChild2($$,constante,$4);}
 	|	DEFAULT ':' instruction {$$= creerNoeud("DEFAULT");
