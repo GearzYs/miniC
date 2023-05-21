@@ -6,6 +6,7 @@ typedef enum {
     FONCTION,
     APPELFONCTION,  
     AFFECTATION,
+    CONSTANTEE,
     OPERATEUR,
     EXTERNE,
     SWITCHE,
@@ -221,3 +222,9 @@ liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_err
 
 // verif appel fonction
 liste_error* verifierAppelFonction(noeud* n, noeud* racine, liste_error* liste);
+
+//verif sur affectation de variable
+liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_error* listeError);
+
+// recherche une variable 
+noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal);

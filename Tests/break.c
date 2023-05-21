@@ -3,6 +3,7 @@ int j;
 
 extern int printd( int i );
 
+extern void test();
 
 void main() {
    for (i=0; i<10; i=i+1) {
@@ -10,6 +11,6 @@ void main() {
    }
    printd(i);
    printd(i);
-   i=-1+2+main();
+   i=a;
    return;
 }

@@ -6,6 +6,7 @@
 #include "parsingMini.h"
 
 int COMPTEUR = 0;
+
 noeud* creerNoeud(char* val) {
     noeud* n = malloc(sizeof(noeud));
     n->val = val;
@@ -631,7 +632,8 @@ bool afficherErrors(liste_error* liste){
         listeError = verifierDeclarations(n,NULL,listeError);
         }
         else{
-        listeError =verifierDeclarations(n,arbreGlobal,listeError);
+        listeError = verifierDeclarations(n,arbreGlobal->fils[0],listeError);
+        listeError = rechercherAffect(arbreGlobal,arbreGlobal->fils[0],n,listeError);
         }
     }
     else{   
@@ -643,65 +645,6 @@ bool afficherErrors(liste_error* liste){
     }
     return listeError;
 }
-
-liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* listeError) {
-    noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
-    liste_noeud* liste;
-    if (arbreGlobal == NULL) {
-        liste = prog->tableSymbole->fonction->declaration;
-    }
-    else{
-        liste = addNoeudList(arbreGlobal->tableSymbole->fonction->declaration,prog->tableSymbole->fonction->declaration);
-    }
-    arbreDeclaration=addAllChild(arbreDeclaration, liste);
-    for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
-        for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
-            if (arbreDeclaration->fils[i]->fils[k]==NULL){
-                continue;
-            }
-            noeud* declaration = arbreDeclaration->fils[i]->fils[k];
-            // Vérifier si la déclaration est unique
-            char* nomVariable = declaration->tableSymbole->name;
-            for (int j = 0; j < arbreDeclaration->nb_fils; j++) {
-                for (int l=0;l<arbreDeclaration->fils[j]->nb_fils;l++){
-                    if (i==j && k==l){
-                        continue;
-                    }
-                    if (arbreDeclaration->fils[j]->fils[l]==NULL){
-                        continue;
-                    }
-                    if (strcmp(nomVariable, arbreDeclaration->fils[j]->fils[l]->tableSymbole->name) == 0) {
-                        char* message = malloc(100 * sizeof(char));
-                        sprintf(message, "la variable '%s' est déjà déclarée.", nomVariable);
-                        message = realloc(message, strlen(message) * sizeof(char));
-                        listeError = addNewError(listeError, message, arbreDeclaration->fils[j]->fils[l]->tableSymbole->line);
-                        arbreDeclaration->fils[j]->fils[l]=NULL;
-                        break;
-                    }
-                }
-            }
-        // Vérifier le type de la variable
-        NoeudType typeVariable = declaration->tableSymbole->typeu;
-        if (typeVariable != INTEGER && typeVariable != INTARRAY) {
-            char* message = malloc(100 * sizeof(char));
-            sprintf(message, "le type de la variable '%s' est incorrect", nomVariable);
-            message = realloc(message, strlen(message) * sizeof(char));
-            listeError = addNewError(listeError, message, declaration->tableSymbole->line);
-        }
-        }
-    }
-    return listeError;
-}
-
-bool verifierNombreParametres(fonction* fonctionAppelee, int nombreParametres) {
-    if (fonctionAppelee->nbParametres != nombreParametres) {
-        printf("Erreur : la fonction '%s' attend %d paramètres, mais %d ont été fournis.\n",
-            fonctionAppelee->nom, fonctionAppelee->nbParametres, nombreParametres);
-        return false;
-    }
-    return true;
-}
-
 
 noeud* rechercherFonction(noeud* noeudCourant, const char* nomFonction) {
     if (noeudCourant == NULL) {
@@ -857,6 +800,8 @@ liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_err
                 }
             } else {
                 char* message = malloc(100 * sizeof(char));
+                        printf("nom racine : %s\n", racine->val);
+
                 sprintf(message, "la fonction '%s' n'est pas déclarée.", n->fils[1]->val);
                 message = realloc(message, strlen(message) * sizeof(char));
                 liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
@@ -931,4 +876,146 @@ liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
     verifierAppelFonction(n, n, liste);
     verifierExpressionsArithmetiques(n, n, liste);
     return liste;
+}
+
+/*
+En entrée :
+Noeud racine, noeud n pour la recursion et listeerror
+Sortie liste error
+Si tu tombe sur type affectation
+Vérifier si fils[0] est une variable déclarée
+Les variables décalées seront dans racine fils[0]
+N’oublie pas que les déclarations peuvent être un noeud avec plusieurs fils
+Regarde verifierDeclaration pour s’en inspirer
+Et pour fils [1] si CONSTANTE c’est op
+Si fonction Check si type retour int
+*/
+
+noeud* rechercherVariable(noeud* prog,char* varName, noeud* arbreGlobal) {
+    noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
+    liste_noeud* liste;
+    if (arbreGlobal == NULL) {
+        liste = prog->tableSymbole->fonction->declaration;
+    }
+    else{
+        liste = addNoeudList(arbreGlobal->tableSymbole->fonction->declaration,prog->tableSymbole->fonction->declaration);
+    }
+    arbreDeclaration=addAllChild(arbreDeclaration, liste);
+
+    for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
+        for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
+            noeud* declaration = arbreDeclaration->fils[i]->fils[k];
+            char* nomVariable = declaration->tableSymbole->name;
+            if (strcmp(nomVariable, varName) == 0) {
+                return declaration;
+            }
+        }
+    }
+    return NULL;
+}
+
+liste_error* rechercherAffect(noeud* prog, noeud* arbreGlobal, noeud* n, liste_error* listeError){
+    if (n == NULL) {
+        return listeError;
+    }
+    if(n->type == AFFECTATION){
+        printf("Val : %s\n", n->fils[0]->val);
+        if (n->fils[0]->tableSymbole->typeu == INTEGER || n->fils[0]->type == CONSTANTEE) {
+            if (rechercherVariable(prog,n->fils[0]->val,arbreGlobal) == NULL) {
+                char* message = malloc(100 * sizeof(char));
+                sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[0]->val);
+                message = realloc(message, strlen(message) * sizeof(char));
+                listeError = addNewError(listeError, message, n->fils[0]->tableSymbole->line);
+                afficherErrors(listeError);
+                exit(1);
+            }
+            if (n->fils[1]->type == OPERATEUR) {
+                printf("NOM RACINE : %s\n", arbreGlobal->val);
+                verifierExpressionsArithmetiques(n, prog, listeError);
+            }
+            if (n->fils[1]->type == FONCTION && n->fils[1]->tableSymbole->fonction->typeRetour != INTEGER) {
+                char* message = malloc(100 * sizeof(char));
+                sprintf(message, "L'affectation ne peut pas se faire avec la fonction '%s' de type void.", n->fils[0]->val);
+                message = realloc(message, strlen(message) * sizeof(char));
+                listeError = addNewError(listeError, message, n->fils[0]->tableSymbole->line);
+                afficherErrors(listeError);
+            }
+            if (n->fils[1]->tableSymbole->typeu == INTEGER || n->fils[1]->type == CONSTANTEE) {
+                if (rechercherVariable(prog,n->fils[1]->val,arbreGlobal) == NULL) {
+                char* message = malloc(100 * sizeof(char));
+                sprintf(message, "la variable '%s' n'est pas déclarée.", n->fils[0]->val);
+                message = realloc(message, strlen(message) * sizeof(char));
+                listeError = addNewError(listeError, message, n->fils[0]->tableSymbole->line);
+                afficherErrors(listeError);
+                exit(1);
+            }
+            }
+            else {
+                return listeError;
+            }
+        }
+        else{
+            printf("val : %s\n", n->fils[0]->val);
+            char* message = malloc(100 * sizeof(char));
+            sprintf(message, "L'affectation '%s' ne peut être que sur des variables.", n->fils[0]->tableSymbole->name);
+            message = realloc(message, strlen(message) * sizeof(char));
+            listeError = addNewError(listeError, message, n->fils[0]->tableSymbole->line);
+            afficherErrors(listeError);
+            exit(1);
+        }
+    }
+    for (int i=0;i<n->nb_fils;i++){
+        rechercherAffect(prog,arbreGlobal,n->fils[i],listeError);
+    }
+    
+    return listeError;
+}
+
+liste_error* verifierDeclarations(noeud* prog, noeud* arbreGlobal, liste_error* listeError) {
+    noeud* arbreDeclaration = creerNoeud("arbreDeclaration");
+    liste_noeud* liste;
+    if (arbreGlobal == NULL) {
+        liste = prog->tableSymbole->fonction->declaration;
+    }
+    else{
+        liste = addNoeudList(arbreGlobal->tableSymbole->fonction->declaration,prog->tableSymbole->fonction->declaration);
+    }
+    arbreDeclaration=addAllChild(arbreDeclaration, liste);
+    for (int i = 0; i < arbreDeclaration->nb_fils; i++) {
+        for (int k = 0; k < arbreDeclaration->fils[i]->nb_fils; k++) {
+            if (arbreDeclaration->fils[i]->fils[k]==NULL){
+                continue;
+            }
+            noeud* declaration = arbreDeclaration->fils[i]->fils[k];
+            // Vérifier si la déclaration est unique
+            char* nomVariable = declaration->tableSymbole->name;
+            for (int j = 0; j < arbreDeclaration->nb_fils; j++) {
+                for (int l=0;l<arbreDeclaration->fils[j]->nb_fils;l++){
+                    if (i==j && k==l){
+                        continue;
+                    }
+                    if (arbreDeclaration->fils[j]->fils[l]==NULL){
+                        continue;
+                    }
+                    if (strcmp(nomVariable, arbreDeclaration->fils[j]->fils[l]->tableSymbole->name) == 0) {
+                        char* message = malloc(100 * sizeof(char));
+                        sprintf(message, "la variable '%s' est déjà déclarée.", nomVariable);
+                        message = realloc(message, strlen(message) * sizeof(char));
+                        listeError = addNewError(listeError, message, arbreDeclaration->fils[j]->fils[l]->tableSymbole->line);
+                        arbreDeclaration->fils[j]->fils[l]=NULL;
+                        break;
+                    }
+                }
+            }
+        // Vérifier le type de la variable
+        NoeudType typeVariable = declaration->tableSymbole->typeu;
+        if (typeVariable != INTEGER && typeVariable != INTARRAY) {
+            char* message = malloc(100 * sizeof(char));
+            sprintf(message, "le type de la variable '%s' est incorrect", nomVariable);
+            message = realloc(message, strlen(message) * sizeof(char));
+            listeError = addNewError(listeError, message, declaration->tableSymbole->line);
+        }
+        }
+    }
+    return listeError;
 }

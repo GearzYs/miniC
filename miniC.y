@@ -44,7 +44,7 @@ programme	:
 											noeud* fonction = creerNoeud("FONCTIONS");
 											fonction=addAllChild(fonction,$2);
 											$$=appendChild2($$,declaration,fonction);
-											listeError=checkInBlock($$,$$->fils[0],listeError);
+											listeError=checkInBlock($$,$$,listeError);
 											listeError=verifierDeclarationFonction($$->fils[1],listeError);
 											if(afficherErrors(listeError)){
 												exit(1);
@@ -149,7 +149,8 @@ selection	:
 												$$->type = SWITCHE;
 												if (strcmp($5->val,"BLOC")==1){
 													$$ = appendChild2($$,$3,$5);
-												} else {
+												}
+												else {
 													$$ = appendChild1($$,$3);
 													for(int i = 0; i < $5->nb_fils; i++){
 														$$ = appendChild1($$,$5->fils[i]);
@@ -175,6 +176,8 @@ saut	:
 affectation	:	 
 		variable '=' expression   {$$ = creerNoeud(":=");
 									$$->type = AFFECTATION;
+									$1->tableSymbole->line = yylineno;
+									$1->tableSymbole->typeu = INTEGER;
 									$$ = appendChild2($$,$1,$3);}
 ;
 bloc	:	
@@ -219,12 +222,20 @@ expression	:
 													$$->type=OPERATEUR;
 													$$->tableSymbole->typeu=INTEGER;
 													$$ = appendChild2($$,$1,$3);}
-	|	MOINS expression	{char* temp = malloc(sizeof(char)*100);
-							sprintf(temp,"-%s", $2->val);
-							temp=realloc(temp,sizeof(char)*strlen(temp));
-							$$ = creerNoeud(temp);}                                   
+	|	MOINS expression	{if ($2->type==CONSTANTEE){
+								char* temp = malloc(sizeof(char)*100);
+								sprintf(temp,"-%s", $2->val);
+								temp=realloc(temp,sizeof(char)*strlen(temp));
+								$$ = creerNoeud(temp);
+							}
+							else{
+								$$ = creerNoeud("-");
+								$$ = appendChild1($$,$2);
+							}
+							}                                   
 	|	CONSTANTE       {$$= creerNoeud($1); 
-						$$->tableSymbole->typeu=INTEGER;}                                                  							
+						$$->tableSymbole->typeu=INTEGER;
+						$$->type=CONSTANTEE;}                                                  							
 	|	variable	 {$$ = $1;}                                 
 	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = creerNoeud($1);
 													$$->type = APPELFONCTION;
