@@ -82,18 +82,17 @@ fonction	:
 																								$$->type = FONCTION;
 																								if ($4->nb_noeud > 0){
 																									$$=newFunction($$,$2,$1,$4,yylineno);
+																									$$->type = FONCTION;
 																								}
 																								$$ = appendChild1($$,$6);
 																								}
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';' {char* funcname = (char * ) malloc(20 * sizeof(char));
 																								sprintf(funcname,"EXTERN %s, %s",$3,$2->val);
 																								$$= creerNoeud(funcname);
-																								$$->type = FONCTION;
 																								if ($5->nb_noeud > 0) {
 																									//$$=newFunction($$,$3,$2,$5);
-																									for(int i = 0; i < $5->nb_noeud; i++){
-																										$$=newFunction($$,$3,$2,$5,yylineno);
-																									}
+																									$$=newFunction($$,$3,$2,$5,yylineno);
+																									$$->type = EXTERNE;
 																								}}
 ;
 type	:	
@@ -152,6 +151,7 @@ selection	:
 	|	IF '(' condition ')' instruction ELSE instruction {$$= creerNoeud("IF");
 															$$ = appendChild3($$,$3,$5,$7);}
 	|	SWITCH '(' expression ')' instruction {$$= creerNoeud("SWITCH");
+												$$->type = SWITCHE;
 												if (strcmp($5->val,"BLOC")==1){
 													$$ = appendChild2($$,$3,$5);
 												} else {
@@ -170,9 +170,11 @@ saut	:
 		BREAK ';' {$$= creerNoeud("BREAK"); 
 					$$->type = BREAK;}
 	|	RETURN ';' {$$= creerNoeud("RETURN");
-					$$->type = RETURN;}
+					$$->type = RETURN;
+					$$->tableSymbole->line = yylineno;}
 	|	RETURN expression ';' {$$= creerNoeud("RETURN");
 							$$->type = RETURN;
+							$$->tableSymbole->line = yylineno;
 							$$ = appendChild1($$,$2);}
 ;
 affectation	:	 
@@ -194,14 +196,17 @@ bloc	:
 ;
 appel	:	
 		IDENTIFICATEUR '(' liste_expressions ')' ';' {$$= creerNoeud($1);
-														$$->type = APPELFONCTION;
+														$$->tableSymbole->line = yylineno;
+														$$->tableSymbole->fonction->nbParametres = $3->nb_noeud;
 														if ($3->nb_noeud > 0){
-														for(int i = 0; i < $3->nb_noeud; i++){
-															if ($3->liste_noeud[i]!=NULL){
-															$$ = appendChild1($$,$3->liste_noeud[i]);
+															for(int i = 0; i < $3->nb_noeud; i++){
+																if ($3->liste_noeud[i]!=NULL){
+																$$ = appendChild1($$,$3->liste_noeud[i]);
+																}
 															}
 														}
-													}}
+														$$->type=APPELFONCTION;
+													}
 ;
 variable	:	
 		IDENTIFICATEUR  {$$ = creerNoeud($1);}
@@ -216,10 +221,13 @@ variable	:
 expression	:	
 		'(' expression ')'	{$$ = $2;}                      
 	|	expression binary_op expression %prec OP	{$$= creerNoeud($2);
+													$$->tableSymbole->typeu=INTEGER;
 													$$ = appendChild2($$,$1,$3);}
 	|	MOINS expression	{$$ = creerNoeud("-");
 							$$ = appendChild1($$,$2);}                                   
-	|	CONSTANTE       {$$= creerNoeud($1);}                                                  							
+	|	CONSTANTE       {$$= creerNoeud($1); 
+						$$->tableSymbole->typeu=INTEGER;
+						$$->type=OPERATEUR;}                                                  							
 	|	variable	 {$$ = $1;}                                 
 	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = creerNoeud($1);
 													$$->type = APPELFONCTION;

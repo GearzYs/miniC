@@ -6,6 +6,9 @@ typedef enum {
     FONCTION,
     APPELFONCTION,  
     AFFECTATION,
+    OPERATEUR,
+    EXTERNE,
+    SWITCHE,
     RETURN
 } typeNoeud;
 
@@ -203,3 +206,18 @@ liste_error* addNewListError(liste_error* error1, liste_error* error2);
 
 // verif si une fonction est déclarée
 liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste);
+
+// verif type INT pour les return
+liste_error* verifierTypeRetourINT(noeud* n, noeud* fonction, NoeudType typeAttendu, liste_error* liste);
+
+// verif type VOID pour les return
+liste_error* verifierTypeRetourVoid(noeud* n, noeud* fonction, NoeudType typeAttendu, liste_error* liste);
+
+// verif si return est dans une fonction
+bool ifNoReturn(noeud* n);
+
+// verif si le calclul est possible
+liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_error* liste);
+
+// verif appel fonction
+liste_error* verifierAppelFonction(noeud* n, noeud* racine, liste_error* liste);
