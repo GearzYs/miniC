@@ -174,7 +174,7 @@ saut	:
 ;
 affectation	:	 
 		variable '=' expression   {$$ = creerNoeud(":=");
-									$3->type = AFFECTATION;
+									$$->type = AFFECTATION;
 									$$ = appendChild2($$,$1,$3);}
 ;
 bloc	:	
@@ -216,21 +216,28 @@ variable	:
 expression	:	
 		'(' expression ')'	{$$ = $2;}                      
 	|	expression binary_op expression %prec OP	{$$= creerNoeud($2);
+													$$->type=OPERATEUR;
 													$$->tableSymbole->typeu=INTEGER;
 													$$ = appendChild2($$,$1,$3);}
-	|	MOINS expression	{$$ = creerNoeud("-");
-							$$ = appendChild1($$,$2);}                                   
+	|	MOINS expression	{char* temp = malloc(sizeof(char)*100);
+							sprintf(temp,"-%s", $2->val);
+							temp=realloc(temp,sizeof(char)*strlen(temp));
+							$$ = creerNoeud(temp);}                                   
 	|	CONSTANTE       {$$= creerNoeud($1); 
-						$$->tableSymbole->typeu=INTEGER;
-						$$->type=OPERATEUR;}                                                  							
+						$$->tableSymbole->typeu=INTEGER;}                                                  							
 	|	variable	 {$$ = $1;}                                 
 	|	IDENTIFICATEUR '(' liste_expressions ')' {$$ = creerNoeud($1);
 													$$->type = APPELFONCTION;
+													$$->tableSymbole->line = yylineno;
+													$$->tableSymbole->fonction->nbParametres = $3->nb_noeud;
 													if ($3->nb_noeud > 0){
 														for(int i = 0; i < $3->nb_noeud; i++){
 															$$ = appendChild1($$,$3->liste_noeud[i]);
+															$$->tableSymbole->line = yylineno;
+
 														}
-													}}                                  
+													}
+													}                                  
 ;
 
 liste_expressions	:	

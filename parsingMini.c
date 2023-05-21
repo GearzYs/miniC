@@ -422,7 +422,6 @@ noeud* newFunction(noeud* n, char* nameFunction, noeud* typeFunction, liste_noeu
     n->tableSymbole->line = line;
     n->tableSymbole->fonction->typeRetour = stringToType(typeFunction->val);
     n->tableSymbole->fonction->nom = nameFunction;
-    printf("fonction %s,nb parm %d\n", n->tableSymbole->fonction->nom, parametres->nb_noeud);
     if (parametres == NULL || parametres->nb_noeud == 0) {
         n->tableSymbole->fonction->nbParametres = 0;
         n->tableSymbole->fonction->parametres = malloc(sizeof(Parametre*));
@@ -830,6 +829,60 @@ liste_error* verifierAppelFonction(noeud* n, noeud* racine, liste_error* liste){
     return liste;
 }
 
+liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_error* liste) {
+    if (n == NULL) {
+        return liste;
+    }
+
+    if (n->type == OPERATEUR) {
+        if (n->fils[1]->type == APPELFONCTION) {
+            noeud* fonction = rechercherFonction(racine, n->fils[1]->val);
+            if (fonction != NULL) {
+                NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
+                if (strcmp(fonction->tableSymbole->name,"main")==0){
+                    char* message = malloc(100 * sizeof(char));
+                    sprintf(message, "la fonction '%s' ne peut pas être appelée dans une expression arithmétique.", n->fils[1]->val);
+                    message = realloc(message, strlen(message) * sizeof(char));
+                    liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
+                    afficherErrors(liste);
+                    exit(1);
+                }
+                if (typeRetour != INTEGER) {
+                    char* message = malloc(100 * sizeof(char));
+                    sprintf(message, "la fonction '%s' ne retourne pas un type INT.", n->fils[1]->val);
+                    message = realloc(message, strlen(message) * sizeof(char));
+                    liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
+                    afficherErrors(liste);
+                    exit(1);
+                }
+            } else {
+                char* message = malloc(100 * sizeof(char));
+                sprintf(message, "la fonction '%s' n'est pas déclarée.", n->fils[1]->val);
+                message = realloc(message, strlen(message) * sizeof(char));
+                liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
+                afficherErrors(liste);
+                exit(1);
+            }
+        } else {
+            NoeudType typeValeur = n->fils[1]->tableSymbole->typeu;
+            if (typeValeur != INTEGER) {
+                char* message = malloc(100 * sizeof(char));
+                sprintf(message, "la variable '%s' doit être affectée avec une valeur de type INT.", n->fils[1]->val);
+                message = realloc(message, strlen(message) * sizeof(char));
+                liste = addNewError(liste, message, n->fils[1]->tableSymbole->line);
+                afficherErrors(liste);
+                exit(1);
+            }
+        }
+    }
+    
+    for (int i = 0; i < n->nb_fils; i++) {
+        verifierExpressionsArithmetiques(n->fils[i], racine, liste);
+    }
+
+    return liste;
+}
+
 liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
     afficherArbre(n);
     for (int i = 0; i < n->nb_fils; i++) {
@@ -876,96 +929,6 @@ liste_error* verifierDeclarationFonction(noeud* n, liste_error* liste) {
         }
     }
     verifierAppelFonction(n, n, liste);
-    return liste;
-}
-
-void verifierAffectations(noeud* bloc) {
-    for (int i = 0; i < bloc->nb_fils; i++){
-        noeud* instruction = bloc->fils[i];
-        if (instruction->type == AFFECTATION) {
-            noeud* variable = instruction->fils[0];
-            noeud* valeur = instruction->fils[1];
-
-            char* nomVariable = variable->val;
-            noeud* declaration = rechercherNoeud(bloc, nomVariable);
-
-            if (declaration == NULL) {
-                printf("Erreur : la variable '%s' n'est pas déclarée dans le bloc.\n", nomVariable);
-            } else {
-                if (valeur->type== APPELFONCTION) {
-                    noeud* fonction = rechercherFonction(bloc, valeur->val);
-                    if (fonction != NULL) {
-                        NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
-                        if (typeRetour != INTEGER) {
-                            printf("Erreur : la fonction '%s' ne retourne pas un type INT.\n", valeur->val);
-                        }
-                    } else {
-                        printf("Erreur : la fonction '%s' n'est pas déclarée dans le bloc.\n", valeur->val);
-                    }
-                } else {
-                    NoeudType typeValeur = valeur->tableSymbole->typeu;
-                    if (typeValeur != INTEGER) {
-                        printf("Erreur : la variable '%s' doit être affectée avec une valeur de type INT.\n", nomVariable);
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-/*
-Chaque calcule verifier si on calcul avec une fonction, si oui, verifier si fonction int
-je te fourni un noeud 
-fils[1] c'est la fonction ou constante
-fils[0] c'est OP ou fonction ou constante
-parcours tous les fils
-dès que tu trouves un noeud avec type OPERATEUR; vérifier premier fils si OPERATEUR, 
-si oui, relancer la fonction avec cette OPERATEUR jusqu'à remonter si non test le type de fonction si void error
-*/
-liste_error* verifierExpressionsArithmetiques(noeud* n, noeud* racine, liste_error* liste) {
-    if (n == NULL) {
-        return liste;
-    }
-
-    if (n->type == OPERATEUR) {
-        if (n->fils[1]->type == APPELFONCTION) {
-            noeud* fonction = rechercherFonction(racine, n->fils[1]->val);
-            if (fonction != NULL) {
-                NoeudType typeRetour = fonction->tableSymbole->fonction->typeRetour;
-                if (typeRetour != INTEGER) {
-                    char* message = malloc(100 * sizeof(char));
-                    sprintf(message, "la fonction '%s' ne retourne pas un type INT.", n->fils[1]->val);
-                    message = realloc(message, strlen(message) * sizeof(char));
-                    liste = addNewError(liste, message, n->tableSymbole->line);
-                    afficherErrors(liste);
-                    exit(1);
-                }
-            } else {
-                char* message = malloc(100 * sizeof(char));
-                sprintf(message, "la fonction '%s' n'est pas déclarée.", n->fils[1]->val);
-                message = realloc(message, strlen(message) * sizeof(char));
-                liste = addNewError(liste, message, n->tableSymbole->line);
-                afficherErrors(liste);
-                exit(1);
-            }
-        } else {
-            NoeudType typeValeur = n->fils[1]->tableSymbole->typeu;
-            if (typeValeur != INTEGER) {
-                char* message = malloc(100 * sizeof(char));
-                sprintf(message, "la variable '%s' doit être affectée avec une valeur de type INT.", n->fils[1]->val);
-                message = realloc(message, strlen(message) * sizeof(char));
-                liste = addNewError(liste, message, n->tableSymbole->line);
-                afficherErrors(liste);
-                exit(1);
-            }
-        }
-    }
-    
-    for (int i = 0; i < n->nb_fils; i++) {
-        verifierExpressionsArithmetiques(n->fils[i], racine, liste);
-    }
-
+    verifierExpressionsArithmetiques(n, n, liste);
     return liste;
 }

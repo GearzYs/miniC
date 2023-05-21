@@ -602,7 +602,7 @@ static YYINT  *yylexp = 0;
 
 static YYINT  *yylexemes = 0;
 #endif /* YYBTYACC */
-#line 281 "miniC.y"
+#line 288 "miniC.y"
 extern int yylineno;
 
 void yyerror(char *s){
@@ -1543,7 +1543,7 @@ break;
 case 38:
 #line 176 "miniC.y"
 	{yyval.noeud = creerNoeud(":=");
-									yystack.l_mark[0].noeud->type = AFFECTATION;
+									yyval.noeud->type = AFFECTATION;
 									yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);}
 #line 1549 "y.tab.c"
 break;
@@ -1601,164 +1601,171 @@ break;
 case 44:
 #line 218 "miniC.y"
 	{yyval.noeud= creerNoeud(yystack.l_mark[-1].id);
+													yyval.noeud->type=OPERATEUR;
 													yyval.noeud->tableSymbole->typeu=INTEGER;
 													yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);}
-#line 1607 "y.tab.c"
+#line 1608 "y.tab.c"
 break;
 case 45:
-#line 221 "miniC.y"
-	{yyval.noeud = creerNoeud("-");
-							yyval.noeud = appendChild1(yyval.noeud,yystack.l_mark[0].noeud);}
-#line 1613 "y.tab.c"
+#line 222 "miniC.y"
+	{char* temp = malloc(sizeof(char)*100);
+							sprintf(temp,"-%s", yystack.l_mark[0].noeud->val);
+							temp=realloc(temp,sizeof(char)*strlen(temp));
+							yyval.noeud = creerNoeud(temp);}
+#line 1616 "y.tab.c"
 break;
 case 46:
-#line 223 "miniC.y"
+#line 226 "miniC.y"
 	{yyval.noeud= creerNoeud(yystack.l_mark[0].id); 
-						yyval.noeud->tableSymbole->typeu=INTEGER;
-						yyval.noeud->type=OPERATEUR;}
-#line 1620 "y.tab.c"
+						yyval.noeud->tableSymbole->typeu=INTEGER;}
+#line 1622 "y.tab.c"
 break;
 case 47:
-#line 226 "miniC.y"
+#line 228 "miniC.y"
 	{yyval.noeud = yystack.l_mark[0].noeud;}
-#line 1625 "y.tab.c"
+#line 1627 "y.tab.c"
 break;
 case 48:
-#line 227 "miniC.y"
+#line 229 "miniC.y"
 	{yyval.noeud = creerNoeud(yystack.l_mark[-3].id);
 													yyval.noeud->type = APPELFONCTION;
+													yyval.noeud->tableSymbole->line = yylineno;
+													yyval.noeud->tableSymbole->fonction->nbParametres = yystack.l_mark[-1].liste_noeud->nb_noeud;
 													if (yystack.l_mark[-1].liste_noeud->nb_noeud > 0){
 														for(int i = 0; i < yystack.l_mark[-1].liste_noeud->nb_noeud; i++){
 															yyval.noeud = appendChild1(yyval.noeud,yystack.l_mark[-1].liste_noeud->liste_noeud[i]);
+															yyval.noeud->tableSymbole->line = yylineno;
+
 														}
-													}}
-#line 1636 "y.tab.c"
+													}
+													}
+#line 1643 "y.tab.c"
 break;
 case 49:
-#line 237 "miniC.y"
+#line 244 "miniC.y"
 	{yyval.liste_noeud=addNoeud(yystack.l_mark[-2].liste_noeud,yystack.l_mark[0].noeud);}
-#line 1641 "y.tab.c"
+#line 1648 "y.tab.c"
 break;
 case 50:
-#line 238 "miniC.y"
+#line 245 "miniC.y"
 	{yyval.liste_noeud=creerListeNoeud(yystack.l_mark[0].noeud);}
-#line 1646 "y.tab.c"
+#line 1653 "y.tab.c"
 break;
 case 51:
-#line 239 "miniC.y"
+#line 246 "miniC.y"
 	{liste_noeud* f = malloc(sizeof(liste_noeud));
 			f->nb_noeud = 0;
 		yyval.liste_noeud = f;}
-#line 1653 "y.tab.c"
+#line 1660 "y.tab.c"
 break;
 case 52:
-#line 245 "miniC.y"
+#line 252 "miniC.y"
 	{yyval.noeud = creerNoeud("NOT");
 								yyval.noeud = appendChild1(yyval.noeud,yystack.l_mark[-1].noeud);}
-#line 1659 "y.tab.c"
+#line 1666 "y.tab.c"
 break;
 case 53:
-#line 247 "miniC.y"
+#line 254 "miniC.y"
 	{
 										yyval.noeud = creerNoeud(yystack.l_mark[-1].id);
 										yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);
 	}
-#line 1667 "y.tab.c"
+#line 1674 "y.tab.c"
 break;
 case 54:
-#line 251 "miniC.y"
+#line 258 "miniC.y"
 	{yyval.noeud = yystack.l_mark[-1].noeud;}
-#line 1672 "y.tab.c"
+#line 1679 "y.tab.c"
 break;
 case 55:
-#line 252 "miniC.y"
+#line 259 "miniC.y"
 	{
 										yyval.noeud = creerNoeud(yystack.l_mark[-1].id);
 										yyval.noeud = appendChild2(yyval.noeud,yystack.l_mark[-2].noeud,yystack.l_mark[0].noeud);
 	}
-#line 1680 "y.tab.c"
+#line 1687 "y.tab.c"
 break;
 case 56:
-#line 258 "miniC.y"
+#line 265 "miniC.y"
 	{yyval.id = "+"; }
-#line 1685 "y.tab.c"
+#line 1692 "y.tab.c"
 break;
 case 57:
-#line 259 "miniC.y"
+#line 266 "miniC.y"
 	{yyval.id = "-"; }
-#line 1690 "y.tab.c"
+#line 1697 "y.tab.c"
 break;
 case 58:
-#line 260 "miniC.y"
+#line 267 "miniC.y"
 	{yyval.id = "*"; }
-#line 1695 "y.tab.c"
+#line 1702 "y.tab.c"
 break;
 case 59:
-#line 261 "miniC.y"
+#line 268 "miniC.y"
 	{yyval.id = "/"; }
-#line 1700 "y.tab.c"
+#line 1707 "y.tab.c"
 break;
 case 60:
-#line 262 "miniC.y"
+#line 269 "miniC.y"
 	{yyval.id = "<<"; }
-#line 1705 "y.tab.c"
+#line 1712 "y.tab.c"
 break;
 case 61:
-#line 263 "miniC.y"
+#line 270 "miniC.y"
 	{yyval.id = ">>"; }
-#line 1710 "y.tab.c"
+#line 1717 "y.tab.c"
 break;
 case 62:
-#line 264 "miniC.y"
+#line 271 "miniC.y"
 	{yyval.id = "&="; }
-#line 1715 "y.tab.c"
+#line 1722 "y.tab.c"
 break;
 case 63:
-#line 265 "miniC.y"
+#line 272 "miniC.y"
 	{yyval.id = "|="; }
-#line 1720 "y.tab.c"
+#line 1727 "y.tab.c"
 break;
 case 64:
-#line 268 "miniC.y"
+#line 275 "miniC.y"
 	{yyval.id = "&&"; }
-#line 1725 "y.tab.c"
+#line 1732 "y.tab.c"
 break;
 case 65:
-#line 269 "miniC.y"
+#line 276 "miniC.y"
 	{yyval.id = "||"; }
-#line 1730 "y.tab.c"
+#line 1737 "y.tab.c"
 break;
 case 66:
-#line 272 "miniC.y"
+#line 279 "miniC.y"
 	{yyval.id = "<"; }
-#line 1735 "y.tab.c"
+#line 1742 "y.tab.c"
 break;
 case 67:
-#line 273 "miniC.y"
+#line 280 "miniC.y"
 	{yyval.id = ">"; }
-#line 1740 "y.tab.c"
+#line 1747 "y.tab.c"
 break;
 case 68:
-#line 274 "miniC.y"
+#line 281 "miniC.y"
 	{yyval.id = ">="; }
-#line 1745 "y.tab.c"
+#line 1752 "y.tab.c"
 break;
 case 69:
-#line 275 "miniC.y"
+#line 282 "miniC.y"
 	{yyval.id = "<="; }
-#line 1750 "y.tab.c"
+#line 1757 "y.tab.c"
 break;
 case 70:
-#line 276 "miniC.y"
+#line 283 "miniC.y"
 	{yyval.id = "=="; }
-#line 1755 "y.tab.c"
+#line 1762 "y.tab.c"
 break;
 case 71:
-#line 277 "miniC.y"
+#line 284 "miniC.y"
 	{yyval.id = "!="; }
-#line 1760 "y.tab.c"
+#line 1767 "y.tab.c"
 break;
-#line 1762 "y.tab.c"
+#line 1769 "y.tab.c"
     default:
         break;
     }
