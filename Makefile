@@ -1,23 +1,21 @@
-LEX = flex
-YACC = yacc
-CC = gcc
+CC=gcc
+YC=yacc
+FL=flex
 
+TARGET=compil
 
-# Fichiers source
-LEX_FILE = ANSI-C.l
-YACC_FILE = miniC.y
-SRC_FILES = lex.yy.c y.tab.c parsingMini.c
-NAME = compil
-CFLAG = -o
-LFLAG = -lfl
+all: compile run
 
+compile:
+	$(YC) -d miniC.y 
+	$(FL) ANSI-C.l
+	$(CC) -o $(TARGET) lex.yy.c y.tab.c parsingMini.c -lfl 
 
-# Règles de compilation
-all:
-	$(YACC) -d miniC.y 
-	$(LEX) ANSI-C.l
-	$(CC) $(CFLAG) $(NAME) $(SRC_FILES) $(LFLAG)
-	./$(NAME) < Tests/test.c
+run:
+	./$(TARGET) < Tests/$(FILE).c
+	dot -Tpdf ./add.dot -o ./PdfFiles/$(FILE).pdf
+	mv add.dot ./DotFiles/$(FILE).dot
 
 clean:
-	rm $(NAME)
+	rm $(TARGET)
+	rm DOT.dot

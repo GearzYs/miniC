@@ -2,7 +2,6 @@ extern int printd( int i );
 
 int main() {
   int i;
-  i = 0;
   while ( i < 10 ) {
     printd(i);
     i = i+2;
